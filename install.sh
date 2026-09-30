@@ -8,6 +8,7 @@
 #   ./install.sh --only a,b      только указанные пункты (id из --list)
 #   ./install.sh --skip a,b      пункты по умолчанию, кроме указанных
 #   ./install.sh --dry-run ...   только показать, что будет выполнено
+#   ./install.sh --version       версия (из файла VERSION в релизном архиве)
 set -uo pipefail
 
 RUS_DIR=$(dirname "$(readlink -f "$0")")
@@ -56,7 +57,7 @@ print_catalog() {
   done
 }
 
-usage() { sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; }
 
 selected=()   # индексы
 set_defaults() { local i; selected=(); for i in "${!ids[@]}"; do [ "${defaults[$i]}" = on ] && selected+=("$i"); done; }
@@ -110,6 +111,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     -h|--help) usage; exit 0 ;;
     --list) print_catalog; exit 0 ;;
+    --version) cat "$RUS_DIR/VERSION" 2>/dev/null || echo "dev"; exit 0 ;;
     --all) mode=all ;;
     --defaults|-y|--yes) mode=defaults ;;
     --only) only="${2:-}"; mode=only; shift ;;

@@ -1,0 +1,77 @@
+name: Release
+
+# Релиз выпускается тегом: git tag v1.0.0 && git push origin v1.0.0
+# Ручной запуск (Actions -> Release -> Run workflow) только собирает архив и кладёт его в артефакты, без публикации.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version
+        id: ver
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            ver="${GITHUB_REF_NAME}"
+            [[ "$ver" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$ ]] || { echo "Тег должен быть вида v1.2.3, а не $ver"; exit 1; }
+          else
+            ver="dev-${GITHUB_SHA::7}"
+          fi
+          echo "ver=$ver" >> "$GITHUB_OUTPUT"
+
+      - name: Build archive
+        run: |
+          mkdir -p build dist
+          git archive --prefix=omarchy-rus/ HEAD | tar -x -C build
+          rm -rf build/omarchy-rus/.github build/omarchy-rus/.gitignore
+          echo "${{ steps.ver.outputs.ver }}" > build/omarchy-rus/VERSION
+          tar --sort=name --owner=0 --group=0 --numeric-owner -C build -czf dist/omarchy-rus.tar.gz omarchy-rus
+          (cd dist && sha256sum omarchy-rus.tar.gz > omarchy-rus.tar.gz.sha256)
+          # Проверка: архив распаковывается, скрипты исполняемые, версия на месте
+          tmp=$(mktemp -d) && tar -xzf dist/omarchy-rus.tar.gz -C "$tmp"
+          test -x "$tmp/omarchy-rus/install.sh"
+          test "$("$tmp/omarchy-rus/install.sh" --version)" = "${{ steps.ver.outputs.ver }}"
+          "$tmp/omarchy-rus/install.sh" --dry-run -y >/dev/null
+          cat dist/omarchy-rus.tar.gz.sha256
+
+      - name: Upload build (manual runs)
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: omarchy-rus-${{ steps.ver.outputs.ver }}
+          path: dist/*
+
+      - name: Publish release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VER: ${{ steps.ver.outputs.ver }}
+        run: |
+          cat > notes.md <<NOTES
+          ## Установка
+          \`\`\`bash
+          curl -fLO https://github.com/${GITHUB_REPOSITORY}/releases/download/${VER}/omarchy-rus.tar.gz
+          tar xzf omarchy-rus.tar.gz && cd omarchy-rus
+          ./install.sh
+          \`\`\`
+          Подробная пошаговая инструкция: [README](https://github.com/${GITHUB_REPOSITORY}#установка-по-шагам) · [English](https://github.com/${GITHUB_REPOSITORY}/blob/main/README.en.md#installation-step-by-step)
+
+          SHA-256 архива лежит рядом в \`omarchy-rus.tar.gz.sha256\`.
+
+          NOTES
+          gh release create "$VER" dist/omarchy-rus.tar.gz dist/omarchy-rus.tar.gz.sha256 \
+            --title "$VER" --notes-file notes.md --generate-notes --verify-tag

@@ -6,6 +6,33 @@ Russian localization for Omarchy (Arch + Hyprland): locale, UI translation, keyb
 root certificates and other Russia-specific extras. Everything is a set of independent **modules**; when you run `install.sh`
 you assemble a "basket" of the ones you want.
 
+## Installation step by step
+You need: Omarchy, a regular (non-root) user, a terminal and `sudo`.
+
+1. **Download the archive** of the latest release: open the [releases page](https://github.com/chastnik/omarchy-rus/releases/latest)
+   and click `omarchy-rus.tar.gz`. Or in one terminal command:
+   ```bash
+   curl -fLO https://github.com/chastnik/omarchy-rus/releases/latest/download/omarchy-rus.tar.gz
+   ```
+2. **Verify integrity** (optional). Download `omarchy-rus.tar.gz.sha256` next to it and run in the same folder:
+   ```bash
+   sha256sum -c omarchy-rus.tar.gz.sha256      # expected: omarchy-rus.tar.gz: OK
+   ```
+3. **Unpack and enter the folder:**
+   ```bash
+   tar xzf omarchy-rus.tar.gz && cd omarchy-rus
+   ```
+4. **See what the installer can do** (optional): `./install.sh --list`
+5. **Run the installation:**
+   ```bash
+   ./install.sh
+   ```
+   Pick "Recommended", "Everything" or "Pick manually" (Space toggles, Enter continues). Enter your `sudo` password when asked.
+6. **Log out and back in** so the interface language takes effect.
+
+**Updating:** download the new release and repeat steps 1–5; the installer is idempotent. Installed archive version: `./install.sh --version`.
+**Without a release (latest from the repository):** `git clone https://github.com/chastnik/omarchy-rus && cd omarchy-rus && ./install.sh`.
+
 ## Quick start
     ./install.sh                # interactive: "Recommended" / "Everything" / "Pick manually"
     ./install.sh --list         # module catalog with descriptions
@@ -62,6 +89,7 @@ flowchart TD
 | `install.sh` | orchestrator: module selection, sudo, execution, summary |
 | `modules/NN-name.sh` | modules; metadata in the header (`title`, `group`, `default`, `sudo`, `desc`). Drop your own file here to add one |
 | `translate-menu.py` | translates the Omarchy menu |
+| `.github/workflows/` | CI (`ci.yml`) and tag-triggered release build (`release.yml`) |
 | `dns-ru.py` | root-helper generator and network widget patch for the `dns` module |
 | `translate-plugins.py` | translates bar plugins; `./translate-plugins.py [name…] [--except name…]` |
 | `install-mincifry-ca.sh` | Ministry certificates and expiry monitoring |
@@ -189,6 +217,22 @@ There is **deliberately no automatic installation** of new certificates: this is
 change or expiry < 90 days you get a notification and the decision is yours: verify at gosuslugi.ru/crt, update the
 `SHA256` values in the script and run it. Expiry: Sub CA 2027-03-06, Root CA 2032-02-27.
 Kept separate from `install.sh` on purpose.
+
+## How to cut a release (for the maintainer)
+```mermaid
+flowchart LR
+    A["git tag v1.2.3 && git push origin v1.2.3"] --> B["GitHub Actions: Release"]
+    B --> C["CI: lint, dry-run, README checks"]
+    C --> D["Build omarchy-rus.tar.gz + .sha256, VERSION = tag"]
+    D --> E["Archive check: unpack, --version, --dry-run"]
+    E --> F["Publish to Releases"]
+```
+1. Make sure `main` is green and your changes are committed and pushed.
+2. Create a `vX.Y.Z` tag and push it: `git tag v1.0.0 && git push origin v1.0.0`.
+3. Open the **Actions** tab: the **Release** workflow runs CI, builds the archive and publishes a release with `omarchy-rus.tar.gz`
+   and `omarchy-rus.tar.gz.sha256` plus auto-generated notes.
+4. Dry run without publishing: Actions → Release → **Run workflow** (the archive lands in the run's artifacts, no release is created).
+5. A bad release: delete it on the releases page and delete the tag (`git push --delete origin v1.0.0`), then retry with a new tag.
 
 ## License
 MIT, see [LICENSE](LICENSE).
