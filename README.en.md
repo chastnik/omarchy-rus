@@ -56,6 +56,8 @@ The Omarchy shell is restarted once at the end if panels were changed. Log out a
 | `spell` | Base | ✓ | `hunspell-ru`, `aspell-ru`, `man-pages-ru` |
 | `timezone` | Simple | ✓ | timezone (`Europe/Moscow`, `RUS_TZ` variable) and `ru.pool.ntp.org` for timesyncd |
 | `xcompose` | Simple | ✓ | block in `~/.XCompose`: `₽` `№` `«»` `—` `–` `…` (Compose = Caps Lock) |
+| `touchpad-scroll` | Simple | — | natural (MacBook-style) touchpad scrolling in `~/.config/hypr/input.lua` (with backup) |
+| `touchpad-gestures` | Simple | — | three-finger horizontal swipe to switch workspaces (with backup) |
 | `vconsole-font` | Simple | ✓ | Cyrillic TTY font (`LatArCyrHeb-16`), takes effect after reboot |
 | `office` | Simple | ✓ | LibreOffice: Russian pack, hyphenation, thesaurus (if LibreOffice is installed) |
 | `telegram` | Apps | ✓ | `telegram-desktop` |

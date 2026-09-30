@@ -56,6 +56,8 @@
 | `spell` | Базовая | ✓ | `hunspell-ru`, `aspell-ru`, `man-pages-ru` |
 | `timezone` | Простое | ✓ | часовой пояс (`Europe/Moscow`, переменная `RUS_TZ`) и `ru.pool.ntp.org` для timesyncd |
 | `xcompose` | Простое | ✓ | блок в `~/.XCompose`: `₽` `№` `«»` `—` `–` `…` (Compose = Caps Lock) |
+| `touchpad-scroll` | Простое | — | натуральная прокрутка тачпада (как на MacBook) в `~/.config/hypr/input.lua` (с бэкапом) |
+| `touchpad-gestures` | Простое | — | жест тремя пальцами влево/вправо для смены рабочих столов (с бэкапом) |
 | `vconsole-font` | Простое | ✓ | кириллический шрифт TTY (`LatArCyrHeb-16`), действует после перезагрузки |
 | `office` | Простое | ✓ | LibreOffice: русский пакет, переносы, тезаурус (если LibreOffice установлен) |
 | `telegram` | Приложения | ✓ | `telegram-desktop` |
