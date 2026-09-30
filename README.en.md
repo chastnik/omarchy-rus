@@ -2,6 +2,13 @@
 
 🌐 [Русский](README.md) · **English**
 
+[![CI](https://github.com/chastnik/omarchy-rus/actions/workflows/ci.yml/badge.svg)](https://github.com/chastnik/omarchy-rus/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/chastnik/omarchy-rus)](https://github.com/chastnik/omarchy-rus/releases/latest)
+[![License: MIT](https://img.shields.io/github/license/chastnik/omarchy-rus)](LICENSE)
+[![Omarchy](https://img.shields.io/badge/Omarchy-Arch%20%2B%20Hyprland-1793D1?logo=archlinux&logoColor=white)](https://omarchy.org)
+[![Stars](https://img.shields.io/github/stars/chastnik/omarchy-rus?style=flat)](https://github.com/chastnik/omarchy-rus/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/chastnik/omarchy-rus)](https://github.com/chastnik/omarchy-rus/commits/main)
+
 ![omarchy-rus: Russian localization installed with one script](docs/screenshot.png)
 
 Russian localization for Omarchy (Arch + Hyprland): locale, UI translation, keyboard layout, speech input, Russian Ministry

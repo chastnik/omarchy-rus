@@ -2,6 +2,13 @@
 
 🌐 **Русский** · [English](README.en.md)
 
+[![CI](https://github.com/chastnik/omarchy-rus/actions/workflows/ci.yml/badge.svg)](https://github.com/chastnik/omarchy-rus/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/chastnik/omarchy-rus)](https://github.com/chastnik/omarchy-rus/releases/latest)
+[![License: MIT](https://img.shields.io/github/license/chastnik/omarchy-rus)](LICENSE)
+[![Omarchy](https://img.shields.io/badge/Omarchy-Arch%20%2B%20Hyprland-1793D1?logo=archlinux&logoColor=white)](https://omarchy.org)
+[![Stars](https://img.shields.io/github/stars/chastnik/omarchy-rus?style=flat)](https://github.com/chastnik/omarchy-rus/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/chastnik/omarchy-rus)](https://github.com/chastnik/omarchy-rus/commits/main)
+
 ![Русификация Omarchy: установка одним скриптом](docs/screenshot.png)
 
 Русификация Omarchy (Arch + Hyprland): локаль, интерфейс, раскладка, речь, сертификаты Минцифры и прочие «русские» мелочи.
