@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shell syntax
+        run: |
+          bash -n install.sh install-mincifry-ca.sh
+          for f in modules/*.sh; do bash -n "$f"; done
+
+      - name: ShellCheck
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          shellcheck -S warning install.sh install-mincifry-ca.sh modules/*.sh
+
+      - name: Python syntax
+        run: python3 -m py_compile translate-menu.py translate-plugins.py
+
+      - name: Modules have metadata and are executable
+        run: |
+          for f in modules/*.sh; do
+            for k in title group default desc; do
+              grep -q "^# $k:" "$f" || { echo "$f: нет поля $k"; exit 1; }
+            done
+            [ -x "$f" ] || { echo "$f: не исполняемый"; exit 1; }
+          done
+
+      - name: Installer selection logic (dry run)
+        run: |
+          ./install.sh --list >/dev/null
+          ./install.sh --dry-run -y
+          ./install.sh --dry-run --all
+          ./install.sh --dry-run --only timezone,telegram
+          ./install.sh --dry-run --skip voxtype,tts
+          if ./install.sh --only no-such-module; then echo "ожидалась ошибка"; exit 1; fi
+
+      - name: README cross-links and diagrams
+        run: |
+          grep -q "README.en.md" README.md
+          grep -q "README.md" README.en.md
+          [ "$(grep -c '```mermaid' README.md)" = "$(grep -c '```mermaid' README.en.md)" ]
+
+      - name: Pinned certificate fingerprints are well-formed
+        run: |
+          grep -E '^\s*\[russian_trusted_(root|sub)_ca\]="([0-9A-F]{2}:){31}[0-9A-F]{2}"' install-mincifry-ca.sh | wc -l | grep -qx 2
