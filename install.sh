@@ -174,7 +174,7 @@ declare -A result
 for i in "${selected[@]}"; do
   echo; echo "▶ ${titles[$i]}"
   if bash "${files[$i]}"; then result[$i]="ok"; else result[$i]="FAIL"; fi
-  case "${ids[$i]}" in panels|weather) need_restart=1 ;; esac
+  case "${ids[$i]}" in panels|weather|dns) need_restart=1 ;; esac
 done
 
 if [ "$need_restart" = 1 ]; then

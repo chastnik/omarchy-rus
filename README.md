@@ -31,6 +31,7 @@
 | `office` | Простое | ✓ | LibreOffice: русский пакет, переносы, тезаурус (если LibreOffice установлен) |
 | `telegram` | Приложения | ✓ | `telegram-desktop` |
 | `weather` | Приложения | ✓ | виджет погоды: `unit=metric`, перевод, геокодинг городов на русском |
+| `dns` | Приложения | ✓ | пилюли DNS для России в виджете сети (Yandex, DNS4EU, NextDNS) + root-helper `omarchy-dns-ru` |
 | `voxtype` | Приложения | ✓ | русское распознавание речи (Parakeet), см. ниже |
 | `panels` | Интерфейс | ✓ | перевод панелей и оверлеев (клоны плагинов), см. ниже |
 | `menu` | Интерфейс | ✓ | перевод меню Omarchy |
@@ -61,6 +62,7 @@ flowchart TD
 | `install.sh` | оркестратор: выбор модулей, sudo, запуск, сводка |
 | `modules/NN-имя.sh` | модули; метаданные в шапке (`title`, `group`, `default`, `sudo`, `desc`). Чтобы добавить свой — положите файл сюда |
 | `translate-menu.py` | перевод меню Omarchy |
+| `dns-ru.py` | генератор root-helper и правка виджета сети для модуля `dns` |
 | `translate-plugins.py` | перевод плагинов бара; `./translate-plugins.py [имя…] [--except имя…]` |
 | `install-mincifry-ca.sh` | сертификаты Минцифры и мониторинг срока |
 | `input.lua.snippet` | фрагмент для `~/.config/hypr/input.lua` |
@@ -135,6 +137,28 @@ flowchart TD
 (вернуть оригинал: `omarchy plugin enable omarchy.<имя>`).
 Не переведены: Dropbox, Agents, виджеты бара (индикаторы и др.), названия эмодзи, экран блокировки и polkit (см. «Чего здесь нет намеренно»).
 Новые плагины добавляются в `TRANSLATIONS` по тому же принципу.
+
+## DNS в виджете сети (`dns`, `dns-ru.py`)
+Стоковые пилюли — Cloudflare и Google, а `omarchy-dns` принимает только их (+ DHCP/Custom) и лежит в `/usr/share/omarchy/`.
+Модуль заменяет их на **Yandex, DNS4EU, NextDNS** (+ DHCP и Custom). Идея и набор провайдеров подсмотрены в
+[WokoFlipper/omarchy-network-ru](https://github.com/WokoFlipper/omarchy-network-ru); реализация своя: без копии всего плагина,
+правится только клон виджета сети.
+
+```mermaid
+flowchart LR
+    P["Пилюля DNS в виджете сети (клон плагина)"] -->|"omarchy-dns-ru Yandex"| H["/usr/local/bin/omarchy-dns-ru (root:root)"]
+    H -->|"polkit-диалог"| R["NetworkManager global-dns + systemd-resolved"]
+    S["/usr/bin/omarchy-dns (стоковый)"] -->|"dns-ru.py helper: копия + новые провайдеры"| H
+```
+
+- `dns-ru.py helper` генерирует `omarchy-dns-ru` из стокового скрипта (все механики — NetworkManager, resolved, DoT opportunistic —
+  остаются стоковыми), `dns-ru.py panel` правит пилюли в клоне. Список провайдеров — в `PROVIDERS` в начале `dns-ru.py`.
+- Helper ставится **от root** (`root:root 0755`): скрипт, который исполняется от root после подтверждения, не должен быть
+  доступен на запись пользователю. Каждая смена DNS запрашивает подтверждение через polkit, тихого режима нет.
+- Если у стокового `omarchy-dns` изменится структура, генератор остановится с сообщением, а не выдаст битый helper.
+  После `omarchy update` перезапустите модуль: `./install.sh --only dns`.
+- Серверы на момент написания отвечали по IPv4 (UDP/53). Доступность зависит от провайдера связи — проверяйте у себя.
+  Удаление: `sudo rm /usr/local/bin/omarchy-dns-ru` и пересоздайте клон сети (`rm -r ~/.config/omarchy/plugins/$USER.network`, `./translate-plugins.py network`).
 
 ## Сертификаты Минцифры (`install-mincifry-ca.sh`)
 Нужны для госсайтов и части банков. Скрипт скачивает Russian Trusted Root/Sub CA с gu-st.ru, сверяет

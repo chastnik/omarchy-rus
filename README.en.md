@@ -31,6 +31,7 @@ The Omarchy shell is restarted once at the end if panels were changed. Log out a
 | `office` | Simple | ✓ | LibreOffice: Russian pack, hyphenation, thesaurus (if LibreOffice is installed) |
 | `telegram` | Apps | ✓ | `telegram-desktop` |
 | `weather` | Apps | ✓ | weather widget: `unit=metric`, translation, Russian city geocoding |
+| `dns` | Apps | ✓ | Russia-friendly DNS pills in the network widget (Yandex, DNS4EU, NextDNS) + root helper `omarchy-dns-ru` |
 | `voxtype` | Apps | ✓ | Russian speech recognition (Parakeet), see below |
 | `panels` | UI | ✓ | translates panels and overlays (plugin clones), see below |
 | `menu` | UI | ✓ | translates the Omarchy menu |
@@ -61,6 +62,7 @@ flowchart TD
 | `install.sh` | orchestrator: module selection, sudo, execution, summary |
 | `modules/NN-name.sh` | modules; metadata in the header (`title`, `group`, `default`, `sudo`, `desc`). Drop your own file here to add one |
 | `translate-menu.py` | translates the Omarchy menu |
+| `dns-ru.py` | root-helper generator and network widget patch for the `dns` module |
 | `translate-plugins.py` | translates bar plugins; `./translate-plugins.py [name…] [--except name…]` |
 | `install-mincifry-ca.sh` | Ministry certificates and expiry monitoring |
 | `input.lua.snippet` | snippet appended to `~/.config/hypr/input.lua` |
@@ -135,6 +137,28 @@ fresh version: `rm -r ~/.config/omarchy/plugins/$USER.<name>` and run `./transla
 (to get the original back: `omarchy plugin enable omarchy.<name>`).
 Not translated: Dropbox, Agents, bar widgets (indicators etc.), emoji names, lock screen and polkit (see "Deliberately not included").
 Add new plugins to `TRANSLATIONS` the same way.
+
+## DNS in the network widget (`dns`, `dns-ru.py`)
+The stock pills are Cloudflare and Google, and `omarchy-dns` accepts only those (+ DHCP/Custom) and lives in `/usr/share/omarchy/`.
+The module replaces them with **Yandex, DNS4EU, NextDNS** (+ DHCP and Custom). The idea and provider set were borrowed from
+[WokoFlipper/omarchy-network-ru](https://github.com/WokoFlipper/omarchy-network-ru); the implementation is our own: no copy of the
+whole plugin, only the network widget clone is patched.
+
+```mermaid
+flowchart LR
+    P["DNS pill in the network widget (plugin clone)"] -->|"omarchy-dns-ru Yandex"| H["/usr/local/bin/omarchy-dns-ru (root:root)"]
+    H -->|"polkit dialog"| R["NetworkManager global-dns + systemd-resolved"]
+    S["/usr/bin/omarchy-dns (stock)"] -->|"dns-ru.py helper: copy + new providers"| H
+```
+
+- `dns-ru.py helper` generates `omarchy-dns-ru` from the stock script (all mechanics — NetworkManager, resolved, opportunistic DoT —
+  stay stock), `dns-ru.py panel` patches the pills in the clone. The provider list is `PROVIDERS` at the top of `dns-ru.py`.
+- The helper is installed **as root** (`root:root 0755`): a script that runs as root after confirmation must not be user-writable.
+  Every DNS change asks for confirmation through polkit; there is no silent mode.
+- If the stock `omarchy-dns` changes structure, the generator stops with a message instead of emitting a broken helper.
+  After `omarchy update` rerun the module: `./install.sh --only dns`.
+- The servers answered over IPv4 (UDP/53) at the time of writing. Reachability depends on your ISP — check on your side.
+  Removal: `sudo rm /usr/local/bin/omarchy-dns-ru` and recreate the network clone (`rm -r ~/.config/omarchy/plugins/$USER.network`, `./translate-plugins.py network`).
 
 ## Russian Ministry root certificates (`install-mincifry-ca.sh`)
 Needed for Russian government sites and some banks. The script downloads Russian Trusted Root/Sub CA from gu-st.ru, checks
