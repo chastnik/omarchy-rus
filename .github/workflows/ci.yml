@@ -26,7 +26,7 @@ jobs:
           shellcheck -S warning install.sh install-mincifry-ca.sh modules/*.sh
 
       - name: Python syntax
-        run: python3 -m py_compile translate-menu.py translate-plugins.py dns-ru.py
+        run: python3 -m py_compile translate-menu.py translate-plugins.py dns-ru.py keybindings-ru.py
 
       - name: Modules have metadata and are executable
         run: |

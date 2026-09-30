@@ -62,6 +62,7 @@ The Omarchy shell is restarted once at the end if panels were changed. Log out a
 | `voxtype` | Apps | ✓ | Russian speech recognition (Parakeet), see below |
 | `panels` | UI | ✓ | translates panels and overlays (plugin clones), see below |
 | `menu` | UI | ✓ | translates the Omarchy menu |
+| `keybindings` | UI | ✓ | Russian keybindings menu (Super+K): a copy of the stock one with translated descriptions |
 | `fastfetch` | UI | ✓ | `~/.config/fastfetch/config.jsonc` with Russian headings ("About") |
 | `tts` | UI | ✓ | `speech-dispatcher` + `espeak-ng`, Russian as the default language |
 | `ecp` | Work | — | PC/SC for e-signatures: `pcsclite`, `ccid`, `opensc`, `pcsc-tools`, `pcscd` |
@@ -90,6 +91,7 @@ flowchart TD
 | `modules/NN-name.sh` | modules; metadata in the header (`title`, `group`, `default`, `sudo`, `desc`). Drop your own file here to add one |
 | `translate-menu.py` | translates the Omarchy menu |
 | `.github/workflows/` | CI (`ci.yml`) and tag-triggered release build (`release.yml`) |
+| `keybindings-ru.py` | Super+K menu translation and rebinding |
 | `dns-ru.py` | root-helper generator and network widget patch for the `dns` module |
 | `translate-plugins.py` | translates bar plugins; `./translate-plugins.py [name…] [--except name…]` |
 | `install-mincifry-ca.sh` | Ministry certificates and expiry monitoring |
@@ -135,6 +137,16 @@ flowchart LR
 ```
 An existing foreign file is backed up. Run `./translate-menu.py` (idempotent).
 New entries added by later Omarchy versions stay in English until added to `LABELS`/`TITLES`.
+
+## Keybindings menu (`keybindings`, `keybindings-ru.py`)
+Binding descriptions live in Hyprland Lua configs under `/usr/share/omarchy/` (not editable), and `omarchy-menu-keybindings` shows
+them as-is. The module builds `~/.local/bin/omarchy-menu-keybindings-ru` — a copy of the stock script with a translation step
+(171 descriptions + rules for "workspace N" and the like), rebinds `SUPER + K` in `~/.config/hypr/bindings.lua` (a block between
+`omarchy-rus: keybindings` markers) and points the "Learn → Keybindings" menu entry to it.
+Translation runs after sorting, so the list order stays stock; the list cache accounts for the dictionary hash.
+If the stock script changes structure, the generator stops with a message and breaks nothing (`./install.sh --only keybindings` after
+`omarchy update`). Untranslated descriptions stay in English; the Tmux and Herdr menus (`Super+Alt+K`, `Super+Ctrl+K`) are not translated.
+The dictionary is `TRANSLATIONS` at the top of `keybindings-ru.py`.
 
 ## Bar panel translation (`translate-plugins.py`)
 The translated QML plugins are: calendar (clock), network/Wi-Fi, Bluetooth, audio, power, display, Wi-Fi QR, Speed Test and disk test,

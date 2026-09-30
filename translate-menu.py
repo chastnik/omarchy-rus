@@ -105,6 +105,10 @@ def main() -> int:
             new["label"] = LABELS[entry["label"]]
         if entry.get("title") in TITLES:
             new["title"] = TITLES[entry["title"]]
+        # Меню «Обучение → Горячие клавиши» открывает переведённую версию, если модуль keybindings её собрал.
+        wrapper = Path.home() / ".local/bin/omarchy-menu-keybindings-ru"
+        if key == "learn.keybindings" and wrapper.exists():
+            new["action"] = str(wrapper)
         if new != entry:
             out[key] = new
 

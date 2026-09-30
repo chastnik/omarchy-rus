@@ -62,6 +62,7 @@
 | `voxtype` | Приложения | ✓ | русское распознавание речи (Parakeet), см. ниже |
 | `panels` | Интерфейс | ✓ | перевод панелей и оверлеев (клоны плагинов), см. ниже |
 | `menu` | Интерфейс | ✓ | перевод меню Omarchy |
+| `keybindings` | Интерфейс | ✓ | русское меню горячих клавиш (Super+K): копия стокового с переводом описаний |
 | `fastfetch` | Интерфейс | ✓ | `~/.config/fastfetch/config.jsonc` с русскими заголовками («О системе») |
 | `tts` | Интерфейс | ✓ | `speech-dispatcher` + `espeak-ng`, язык по умолчанию — русский |
 | `ecp` | Работа | — | PC/SC для ЭЦП: `pcsclite`, `ccid`, `opensc`, `pcsc-tools`, `pcscd` |
@@ -90,6 +91,7 @@ flowchart TD
 | `modules/NN-имя.sh` | модули; метаданные в шапке (`title`, `group`, `default`, `sudo`, `desc`). Чтобы добавить свой — положите файл сюда |
 | `translate-menu.py` | перевод меню Omarchy |
 | `.github/workflows/` | CI (`ci.yml`) и сборка релиза по тегу (`release.yml`) |
+| `keybindings-ru.py` | перевод меню Super+K и переназначение привязки |
 | `dns-ru.py` | генератор root-helper и правка виджета сети для модуля `dns` |
 | `translate-plugins.py` | перевод плагинов бара; `./translate-plugins.py [имя…] [--except имя…]` |
 | `install-mincifry-ca.sh` | сертификаты Минцифры и мониторинг срока |
@@ -134,6 +136,16 @@ flowchart LR
 ```
 Существующий чужой файл бэкапится. Запуск: `./translate-menu.py` (идемпотентен).
 Новые пункты после `omarchy update` остаются английскими, пока не добавлены в словари `LABELS`/`TITLES`.
+
+## Меню горячих клавиш (`keybindings`, `keybindings-ru.py`)
+Описания привязок лежат в Lua-конфигах Hyprland внутри `/usr/share/omarchy/` (править нельзя), а `omarchy-menu-keybindings`
+показывает их как есть. Модуль собирает `~/.local/bin/omarchy-menu-keybindings-ru` — копию стокового скрипта с шагом перевода
+(171 описание + правила для «рабочий стол N» и т. п.), переназначает `SUPER + K` в `~/.config/hypr/bindings.lua`
+(блок между маркерами `omarchy-rus: keybindings`) и направляет туда же пункт меню «Обучение → Горячие клавиши».
+Перевод применяется после сортировки записей, поэтому порядок в списке остаётся стоковым; кеш списка учитывает хеш словаря.
+Если структура стокового скрипта изменится, генератор остановится с сообщением и ничего не сломает (`./install.sh --only keybindings` после
+`omarchy update`). Непереведённые описания остаются английскими; меню Tmux и Herdr (`Super+Alt+K`, `Super+Ctrl+K`) не переводятся.
+Словарь — `TRANSLATIONS` в начале `keybindings-ru.py`.
 
 ## Перевод панелей бара (`translate-plugins.py`)
 Переводятся QML-плагины: календарь (clock), сеть/Wi-Fi, Bluetooth, звук, питание, экран, Wi-Fi QR, Speed Test и тест диска,
