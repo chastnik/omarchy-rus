@@ -2,6 +2,8 @@
 
 🌐 [Русский](README.md) · **English**
 
+![omarchy-rus: Russian localization installed with one script](docs/screenshot.png)
+
 Russian localization for Omarchy (Arch + Hyprland): locale, UI translation, keyboard layout, speech input, Russian Ministry
 root certificates and other Russia-specific extras. Everything is a set of independent **modules**; when you run `install.sh`
 you assemble a "basket" of the ones you want.
