@@ -16,11 +16,11 @@ jobs:
 
   release:
     needs: ci
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Version
         id: ver
@@ -50,7 +50,7 @@ jobs:
 
       - name: Upload build (manual runs)
         if: github.ref_type != 'tag'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: omarchy-rus-${{ steps.ver.outputs.ver }}
           path: dist/*
