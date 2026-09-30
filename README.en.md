@@ -111,9 +111,9 @@ flowchart TD
 - Files in `/usr/share/omarchy/` are never touched — only `~/.config/`.
 
 ## voxtype (voice input)
-`install.sh` enables the ONNX build of voxtype (`sudo voxtype setup onnx --enable`), downloads
+The `voxtype` module enables the ONNX build of voxtype (`sudo voxtype setup onnx --enable`), downloads
 `parakeet-tdt-0.6b-v3-int8` (multilingual, Russian supported) and switches to `engine = "parakeet"` only after a
-successful download. GigaAM is not supported in voxtype 1.1.0 (a possible route is an external server via `whisper-mode = remote`).
+successful download.
 Known issue: `models.voxtype.io` can serve the ~650 MB file very slowly; on failure the script fetches the same files from the
 Hugging Face mirror (`istupakov/parakeet-tdt-0.6b-v3-onnx`) with resume and sha256 verification.
 
