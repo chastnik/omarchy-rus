@@ -69,6 +69,7 @@
 | `keybindings` | Интерфейс | ✓ | русское меню горячих клавиш (Super+K): копия стокового с переводом описаний |
 | `fastfetch` | Интерфейс | ✓ | `~/.config/fastfetch/config.jsonc` с русскими заголовками («О системе») |
 | `tts` | Интерфейс | ✓ | `speech-dispatcher` + `espeak-ng`, язык по умолчанию — русский |
+| `post-update-hook` | Интерфейс | — | хук `post-update.d`: после `omarchy update` пересобирает русское меню и меню Super+K |
 | `ecp` | Работа | — | PC/SC для ЭЦП: `pcsclite`, `ccid`, `opensc`, `pcsc-tools`, `pcscd` |
 | `mincifry` | Работа | — | сертификаты Минцифры + еженедельная автопроверка срока |
 

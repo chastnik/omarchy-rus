@@ -69,6 +69,7 @@ The Omarchy shell is restarted once at the end if panels were changed. Log out a
 | `keybindings` | UI | ✓ | Russian keybindings menu (Super+K): a copy of the stock one with translated descriptions |
 | `fastfetch` | UI | ✓ | `~/.config/fastfetch/config.jsonc` with Russian headings ("About") |
 | `tts` | UI | ✓ | `speech-dispatcher` + `espeak-ng`, Russian as the default language |
+| `post-update-hook` | UI | — | `post-update.d` hook: after `omarchy update` rebuilds the Russian menu and the Super+K menu |
 | `ecp` | Work | — | PC/SC for e-signatures: `pcsclite`, `ccid`, `opensc`, `pcsc-tools`, `pcscd` |
 | `mincifry` | Work | — | Ministry certificates + weekly expiry check |
 
