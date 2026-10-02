@@ -8,7 +8,7 @@ omarchy pkg add speech-dispatcher espeak-ng
 CONF="$HOME/.config/speech-dispatcher/speechd.conf"
 mkdir -p "$(dirname "$CONF")"
 MARK="# omarchy-rus"
-if ! grep -qF "$MARK" "$CONF" 2>/dev/null; then
+if ! grep -qF -- "$MARK" "$CONF" 2>/dev/null; then
   [ -f "$CONF" ] && cp "$CONF" "$CONF.bak.$(date +%s)"
   cat >> "$CONF" <<CFG
 $MARK

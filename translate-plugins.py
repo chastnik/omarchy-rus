@@ -212,6 +212,11 @@ PATCHES = [
      'text: String(modelData).charAt(0).toUpperCase() + String(modelData).slice(1)',
      'text: ({"power-saver": "Экономия", "balanced": "Баланс", "performance": "Мощность"})[String(modelData)]'
      ' || (String(modelData).charAt(0).toUpperCase() + String(modelData).slice(1))', 1),
+    # Подсказка Reminder приходит из omarchy-reminder готовой английской строкой ("Set Reminder", "N reminders").
+    ("indicators", "indicators/Reminder.qml", 'tooltip = String(data.tooltip || "")',
+     'tooltip = reminderCount === 0 ? "Создать напоминание" : reminderCount + (reminderCount % 10 === 1 && reminderCount % 100 !== 11'
+     ' ? " напоминание" : (reminderCount % 10 >= 2 && reminderCount % 10 <= 4 && (reminderCount % 100 < 12 || reminderCount % 100 > 14)'
+     ' ? " напоминания" : " напоминаний"))', 1),
     # Dropbox: единицы, «из» и относительное время собираются из кусков.
     ("dropbox", "Model.js", 'var units = ["B", "KB", "MB", "GB", "TB"]', 'var units = ["Б", "КБ", "МБ", "ГБ", "ТБ"]', 1),
     ("dropbox", "Model.js", '"0 B"', '"0 Б"', 1),

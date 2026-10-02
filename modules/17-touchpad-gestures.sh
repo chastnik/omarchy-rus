@@ -6,7 +6,7 @@
 set -euo pipefail
 INPUT_LUA="$HOME/.config/hypr/input.lua"
 MARK="-- omarchy-rus: touchpad gestures"
-if grep -qF "$MARK" "$INPUT_LUA" || grep -q '^[[:space:]]*hl\.gesture(.*"workspace"' "$INPUT_LUA"; then
+if grep -qF -- "$MARK" "$INPUT_LUA" || grep -q '^[[:space:]]*hl\.gesture(.*"workspace"' "$INPUT_LUA"; then
   echo "жест смены рабочих столов уже настроен, пропускаю"; exit 0
 fi
 cp "$INPUT_LUA" "$INPUT_LUA.bak.$(date +%s)"

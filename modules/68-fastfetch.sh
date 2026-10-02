@@ -9,7 +9,7 @@ DST="$HOME/.config/fastfetch/config.jsonc"
 MARK="// omarchy-rus: generated from $SRC"
 [ -f "$SRC" ] || { echo "$SRC не найден — пропускаю."; exit 0; }
 mkdir -p "$(dirname "$DST")"
-if [ -f "$DST" ] && ! grep -qF "$MARK" "$DST"; then
+if [ -f "$DST" ] && ! grep -qF -- "$MARK" "$DST"; then
   cp "$DST" "$DST.bak.$(date +%s)"
   echo "fastfetch: прежний конфиг сохранён в $DST.bak.*"
 fi
