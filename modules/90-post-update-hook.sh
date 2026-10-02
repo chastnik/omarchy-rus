@@ -20,6 +20,11 @@ fi
 if [ -x "$HOME/.local/bin/omarchy-menu-keybindings-ru" ]; then
   python3 "$D/keybindings-ru.py" wrapper || echo "omarchy-rus: не удалось обновить меню горячих клавиш"
 fi
+for t in tmux herdr; do
+  if [ -x "$HOME/.local/bin/omarchy-menu-$t-keybindings-ru" ]; then
+    python3 "$D/keybindings-ru.py" "$t" || echo "omarchy-rus: не удалось обновить меню $t"
+  fi
+done
 exit 0
 HOOK
 chmod +x "$HOOK_DIR/omarchy-rus.hook"
