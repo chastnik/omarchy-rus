@@ -170,7 +170,7 @@ For each plugin the script:
    (`===`, `indexOf(`, etc.) and internal keys (DHCP/Custom…) are left alone;
 3. applies targeted code edits from `PATCHES` where text is not a literal: the calendar is formatted with the Russian
    locale explicitly (`Qt.locale("ru_RU")`; the plugin forces English by default), and power profile names
-   ("Экономия/Баланс/Мощность") are built from system names;
+   ("Экономия/Баланс/Мощность") are built from system names, and the reminder indicator tooltip ("Создать напоминание", "N напоминания") is pluralised by count (the text arrives from `omarchy-reminder` as a ready-made English string);
 4. restarts the shell (`omarchy restart shell`; without it open panels keep the old code; the bar disappears for a few seconds).
 
 ```mermaid
