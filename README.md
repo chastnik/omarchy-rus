@@ -243,21 +243,5 @@ flowchart TD
 `SHA256` в скрипте и запустите его. Сроки: Sub CA до 2027-03-06, Root CA до 2032-02-27.
 Отдельно от `install.sh` намеренно.
 
-## Как выпустить релиз (для автора)
-```mermaid
-flowchart LR
-    A["git tag v1.2.3 && git push origin v1.2.3"] --> B["GitHub Actions: Release"]
-    B --> C["CI: lint, dry-run, проверки README"]
-    C --> D["Сборка omarchy-rus.tar.gz + .sha256, VERSION = тег"]
-    D --> E["Проверка архива: распаковка, --version, --dry-run"]
-    E --> F["Публикация в Releases"]
-```
-1. Убедитесь, что `main` зелёный и изменения закоммичены и выложены.
-2. Создайте тег вида `vX.Y.Z` и отправьте его: `git tag v1.0.0 && git push origin v1.0.0`.
-3. Откройте вкладку **Actions**: workflow **Release** прогонит CI, соберёт архив и опубликует релиз с файлами `omarchy-rus.tar.gz` и `omarchy-rus.tar.gz.sha256`
-   и автоматическим списком изменений.
-4. Проверка без публикации: Actions → Release → **Run workflow** (архив окажется в артефактах запуска, релиз не создаётся).
-5. Ошибочный релиз: удалите его на странице релизов и тег (`git push --delete origin v1.0.0`), затем повторите с новым тегом.
-
 ## Лицензия
 MIT, см. [LICENSE](LICENSE).

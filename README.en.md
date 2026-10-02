@@ -244,21 +244,5 @@ change or expiry < 90 days you get a notification and the decision is yours: ver
 `SHA256` values in the script and run it. Expiry: Sub CA 2027-03-06, Root CA 2032-02-27.
 Kept separate from `install.sh` on purpose.
 
-## How to cut a release (for the maintainer)
-```mermaid
-flowchart LR
-    A["git tag v1.2.3 && git push origin v1.2.3"] --> B["GitHub Actions: Release"]
-    B --> C["CI: lint, dry-run, README checks"]
-    C --> D["Build omarchy-rus.tar.gz + .sha256, VERSION = tag"]
-    D --> E["Archive check: unpack, --version, --dry-run"]
-    E --> F["Publish to Releases"]
-```
-1. Make sure `main` is green and your changes are committed and pushed.
-2. Create a `vX.Y.Z` tag and push it: `git tag v1.0.0 && git push origin v1.0.0`.
-3. Open the **Actions** tab: the **Release** workflow runs CI, builds the archive and publishes a release with `omarchy-rus.tar.gz`
-   and `omarchy-rus.tar.gz.sha256` plus auto-generated notes.
-4. Dry run without publishing: Actions → Release → **Run workflow** (the archive lands in the run's artifacts, no release is created).
-5. A bad release: delete it on the releases page and delete the tag (`git push --delete origin v1.0.0`), then retry with a new tag.
-
 ## License
 MIT, see [LICENSE](LICENSE).
