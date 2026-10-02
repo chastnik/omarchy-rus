@@ -157,12 +157,12 @@ them as-is. The module builds `~/.local/bin/omarchy-menu-keybindings-ru` — a c
 `omarchy-rus: keybindings` markers) and points the "Learn → Keybindings" menu entry to it.
 Translation runs after sorting, so the list order stays stock; the list cache accounts for the dictionary hash.
 If the stock script changes structure, the generator stops with a message and breaks nothing (`./install.sh --only keybindings` after
-`omarchy update`). Untranslated descriptions stay in English; the Tmux and Herdr menus (`Super+Alt+K`, `Super+Ctrl+K`) are not translated.
+`omarchy update`). Untranslated descriptions stay in English; the Tmux and Herdr menus (`Super+Alt+K`, `Super+Ctrl+K`) are translated the same way (copies of the stock scripts; only descriptions are translated, and Herdr actions missing from the dictionary stay in English).
 The dictionary is `TRANSLATIONS` at the top of `keybindings-ru.py`.
 
 ## Bar panel translation (`translate-plugins.py`)
 The translated QML plugins are: calendar (clock), network/Wi-Fi, Bluetooth, audio, power, display, Wi-Fi QR, Speed Test and disk test,
-Tailscale, notifications, reminders, clipboard, emojis, image picker; weather is a separate `weather` module.
+Tailscale, Dropbox, Agents, bar indicators/microphone/tray/updates, notifications, reminders, clipboard, emojis (UI only), image picker; weather is a separate `weather` module.
 For each plugin the script:
 1. clones it (`omarchy plugin clone`; clones live in `~/.config/omarchy/plugins/<user>.<name>`, are listed as "My …",
    and the originals get disabled);
@@ -187,7 +187,9 @@ The script is idempotent. If a `PATCHES` fragment is not found (the plugin chang
 **Downside of clones:** they do not receive upstream plugin updates. After `omarchy update`, if a panel breaks or you want the
 fresh version: `rm -r ~/.config/omarchy/plugins/$USER.<name>` and run `./translate-plugins.py`
 (to get the original back: `omarchy plugin enable omarchy.<name>`).
-Not translated: Dropbox, Agents, bar widgets (indicators etc.), emoji names, lock screen and polkit (see "Deliberately not included").
+Also translated: Dropbox, Agents (except the Session/Weekly/Monthly limit-window names, which the panel parses) and bar widgets: indicators, microphone, updates, tray.
+Emoji search also works in Russian: Russian names (CLDR, `data/emojis-ru.json`) are appended to the clone's keywords.
+Not translated: lock screen and polkit (see "Deliberately not included").
 Add new plugins to `TRANSLATIONS` the same way.
 
 ## DNS in the network widget (`dns`, `dns-ru.py`)

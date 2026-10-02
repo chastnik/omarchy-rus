@@ -8,6 +8,8 @@
                                скрипта с шагом перевода записей меню (после сортировки, чтобы не
                                ломать приоритеты); ключ кеша включает хеш словаря
   keybindings-ru.py bindings   переназначает SUPER+K на этот скрипт в ~/.config/hypr/bindings.lua
+  keybindings-ru.py tmux       то же для меню Tmux (SUPER+ALT+K): omarchy-menu-tmux-keybindings-ru
+  keybindings-ru.py herdr      то же для меню Herdr (SUPER+CTRL+K): omarchy-menu-herdr-keybindings-ru
 
 Непереведённые описания остаются английскими. Словарь — TRANSLATIONS/PREFIX_RULES ниже.
 """
@@ -19,6 +21,8 @@ from pathlib import Path
 STOCK = Path("/usr/share/omarchy/bin/omarchy-menu-keybindings")
 OUT = Path.home() / ".local/bin/omarchy-menu-keybindings-ru"
 BINDINGS = Path.home() / ".config/hypr/bindings.lua"
+BIN = Path.home() / ".local/bin"
+STOCK_DIR = Path("/usr/share/omarchy/bin")
 MARK_BEGIN, MARK_END = "-- >>> omarchy-rus: keybindings", "-- <<< omarchy-rus: keybindings"
 
 TRANSLATIONS = {
@@ -106,6 +110,75 @@ PREFIX_RULES = [
 ]
 
 
+# Меню Tmux и Herdr: переводятся только описания (правая часть после « → »), чтобы не ломать выравнивание клавиш.
+TMUX = {
+    "Begin selection": "Начать выделение", "Copy selection": "Копировать выделенное",
+    "Create session": "Создать сессию", "Create window": "Создать окно",
+    "Focus pane down": "Фокус на панель ниже", "Focus pane left": "Фокус на панель слева",
+    "Focus pane right": "Фокус на панель справа", "Focus pane up": "Фокус на панель выше",
+    "Kill pane": "Закрыть панель", "Kill session": "Закрыть сессию", "Kill window": "Закрыть окно",
+    "Move window left": "Сдвинуть окно влево", "Move window right": "Сдвинуть окно вправо",
+    "Next session": "Следующая сессия", "Next window": "Следующее окно",
+    "Previous session": "Предыдущая сессия", "Previous window": "Предыдущее окно",
+    "Reload configuration": "Перечитать конфигурацию", "Rename session": "Переименовать сессию",
+    "Rename window": "Переименовать окно", "Resize pane down": "Изменить размер панели вниз",
+    "Resize pane left": "Изменить размер панели влево", "Resize pane right": "Изменить размер панели вправо",
+    "Resize pane up": "Изменить размер панели вверх", "Send prefix": "Отправить префикс",
+    "Show Tmux keybindings": "Показать горячие клавиши Tmux",
+    "Split pane horizontally": "Разделить панель горизонтально", "Split pane vertically": "Разделить панель вертикально",
+}
+TMUX_RULES = [("Switch to window ", "Перейти к окну ")]
+HERDR = {
+    "Reload config": "Перечитать конфигурацию", "Help": "Справка", "Detach": "Отсоединиться",
+    "Copy mode": "Режим копирования", "Split horizontal": "Разделить горизонтально",
+    "Split vertical": "Разделить вертикально", "Close pane": "Закрыть панель", "Zoom": "Развернуть панель",
+    "Last pane": "Предыдущая панель", "Focus pane left": "Фокус на панель слева",
+    "Focus pane down": "Фокус на панель ниже", "Focus pane up": "Фокус на панель выше",
+    "Focus pane right": "Фокус на панель справа", "Resize mode": "Режим изменения размера",
+    "Resize pane left": "Изменить размер панели влево", "Resize pane down": "Изменить размер панели вниз",
+    "Resize pane up": "Изменить размер панели вверх", "Resize pane right": "Изменить размер панели вправо",
+    "Rename pane": "Переименовать панель", "New tab": "Новая вкладка", "Rename tab": "Переименовать вкладку",
+    "Close tab": "Закрыть вкладку", "Switch tab": "Переключить вкладку", "Previous tab": "Предыдущая вкладка",
+    "Next tab": "Следующая вкладка", "Move tab previous": "Сдвинуть вкладку влево",
+    "Move tab next": "Сдвинуть вкладку вправо", "New workspace": "Новое рабочее пространство",
+    "Rename workspace": "Переименовать рабочее пространство", "Close workspace": "Закрыть рабочее пространство",
+    "Previous workspace": "Предыдущее рабочее пространство", "Next workspace": "Следующее рабочее пространство",
+}
+MENUS = {
+    "tmux": ("omarchy-menu-tmux-keybindings", "Tmux keybindings", "Горячие клавиши Tmux", TMUX, TMUX_RULES, "SUPER + ALT + K"),
+    "herdr": ("omarchy-menu-herdr-keybindings", "Herdr keybindings", "Горячие клавиши Herdr", HERDR, [], "SUPER + CTRL + K"),
+}
+
+
+def records_translator(table: dict, rules: list) -> str:
+    """awk-функция translate_records: переводит описание в строках вида «КЛАВИШИ → описание»."""
+    lines = ["translate_records() {", "  awk 'BEGIN {"]
+    for k, v in sorted(table.items()):
+        lines.append(f'    T["{k}"] = "{v}"')
+    for i, (p, r) in enumerate(rules, 1):
+        lines.append(f'    P[{i}] = "{p}"; R[{i}] = "{r}"')
+    lines.append(f"    np = {len(rules)}")
+    lines.append('    sep = " → "')
+    lines.append("  }")
+    lines.append("  {")
+    lines.append("    i = index($0, sep)")
+    lines.append("    if (i > 0) {")
+    lines.append("      head = substr($0, 1, i - 1); action = substr($0, i + length(sep))")
+    lines.append("      if (action in T) action = T[action]")
+    lines.append("      else for (j = 1; j <= np; j++) {")
+    lines.append("        if (index(action, P[j]) == 1 && substr(action, length(P[j]) + 1) ~ /^[0-9]+$/) {")
+    lines.append("          action = R[j] substr(action, length(P[j]) + 1); break")
+    lines.append("        }")
+    lines.append("      }")
+    lines.append("      $0 = head sep action")
+    lines.append("    }")
+    lines.append("    print")
+    lines.append("  }'")
+    lines.append("}")
+    lines.append("")
+    return "\n".join(lines) + "\n"
+
+
 def awk_translator() -> str:
     lines = ["translate_entries() {", "  awk -F '\\t' 'BEGIN { OFS = \"\\t\""]
     for k, v in sorted(TRANSLATIONS.items()):
@@ -166,13 +239,39 @@ def build_wrapper() -> None:
     print(f"keybindings-ru: {OUT} ({len(TRANSLATIONS)} переводов + {len(PREFIX_RULES)} правил)")
 
 
+def build_menu(name: str) -> None:
+    stock_name, title, ru_title, table, rules, _ = MENUS[name]
+    stock = STOCK_DIR / stock_name
+    if not stock.exists():
+        die(f"{stock} не найден")
+    t = stock.read_text()
+    translator = records_translator(table, rules)
+    anchor = 'if [[ $print_only == "true" ]]; then\n  output_keybindings\n  exit 0\nfi\n'
+    t = replace_once(t, anchor, translator + anchor.replace("  output_keybindings\n", "  output_keybindings | translate_records\n"),
+                     "вывод --print")
+    t = replace_once(t, "records=$(output_keybindings)", "records=$(output_keybindings | translate_records)", "records=")
+    t = replace_once(t, f"omarchy-menu-select '{title}'", f"omarchy-menu-select '{ru_title}'", "заголовок меню")
+    lines = t.split("\n", 1)
+    t = lines[0] + "\n# Generated by omarchy-rus/keybindings-ru.py from " + str(stock) + ". Do not edit.\n" + lines[1]
+    out = BIN / f"{stock_name}-ru"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(t)
+    out.chmod(0o755)
+    print(f"keybindings-ru: {out} ({len(table)} переводов)")
+
+
 def patch_bindings() -> None:
     # Описание привязки оставляем английским: приоритет в списке считается по английским словам,
     # а перевод применяется уже после сортировки.
     block = (f'{MARK_BEGIN}\n'
              f'hl.unbind("SUPER + K")\n'
-             f'o.bind("SUPER + K", "Keybindings", "{OUT}")\n'
-             f'{MARK_END}\n')
+             f'o.bind("SUPER + K", "Keybindings", "{OUT}")\n')
+    # Меню Tmux/Herdr, если их обёртки уже собраны.
+    for _, (stock_name, en_title, _, _, _, combo) in MENUS.items():
+        wrapper = BIN / f"{stock_name}-ru"
+        if wrapper.exists():
+            block += f'hl.unbind("{combo}")\no.bind("{combo}", "{en_title}", "{wrapper}")\n'
+    block += f'{MARK_END}\n'
     text = BINDINGS.read_text() if BINDINGS.exists() else ""
     if MARK_BEGIN in text:
         start, end = text.index(MARK_BEGIN), text.index(MARK_END) + len(MARK_END) + 1
@@ -193,6 +292,8 @@ def main() -> None:
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     if cmd == "wrapper":
         build_wrapper()
+    elif cmd in MENUS:
+        build_menu(cmd)
     elif cmd == "bindings":
         patch_bindings()
     else:

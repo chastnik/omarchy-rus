@@ -11,6 +11,7 @@
 `omarchy update` можно удалить ~/.config/omarchy/plugins/<user>.<имя> и запустить скрипт заново.
 """
 import getpass
+import json
 import re
 import subprocess
 import sys
@@ -135,6 +136,68 @@ TRANSLATIONS = {
         "Scan to join this network": "Сканируйте, чтобы подключиться к сети",
         "Show password": "Показать пароль",
     },
+    "dropbox": {
+        "Filing files": "Раскладываем файлы", "Distributing data": "Раздаём данные",
+        "Shuffling folders": "Тасуем папки", "Boxing bytes": "Пакуем байты", "Sorting stuff": "Разбираем вещи",
+        "Syncing secrets": "Синхронизируем секреты", "Packing packets": "Упаковываем пакеты",
+        "Moving memories": "Переносим воспоминания", "Wrangling revisions": "Укрощаем версии",
+        "Cataloging chaos": "Каталогизируем хаос",
+        "Pause syncing": "Приостановить синхронизацию", "Resume syncing": "Возобновить синхронизацию",
+        "Syncing paused": "Синхронизация приостановлена", "Stored": "Занято", "RECENT FILES": "НЕДАВНИЕ ФАЙЛЫ",
+        "No synced files found.": "Синхронизированных файлов нет.", "Login to Dropbox": "Войти в Dropbox",
+        "Dropbox CLI is not installed": "Dropbox CLI не установлен",
+        "Install Dropbox from the service menu": "Установите Dropbox через меню «Установка → Сервис»",
+        "Start the authentication flow": "Начать авторизацию", "Untitled": "Без названия",
+        "Checking…": "Проверка…", "Stopped": "Остановлен", "Not installed": "Не установлен",
+        "Starting Dropbox login…": "Запуск входа в Dropbox…", "Opened Dropbox login": "Страница входа в Dropbox открыта",
+        "Failed to read Dropbox status": "Не удалось прочитать статус Dropbox",
+        "Could not read Dropbox status": "Не удалось прочитать статус Dropbox",
+        "Dropbox login failed": "Не удалось войти в Dropbox", "Dropbox command failed": "Ошибка команды Dropbox",
+        "Failed to parse Dropbox status": "Не удалось разобрать статус Dropbox", "Unavailable": "Недоступно",
+        "Unknown time": "Время неизвестно", "Just now": "Только что",
+    },
+    "agents": {
+        "Agents": "Агенты", "Starting…": "Запуск…", "Checking the code…": "Проверка кода…",
+        "The sign-in didn't finish.": "Вход не завершён.",
+        "Back to the limits": "К лимитам", "Add a subscription": "Добавить подписку",
+        "Start the default agent": "Запустить агента по умолчанию", "MAKE SOMETHING COOL": "СОЗДАЙТЕ ЧТО-НИБУДЬ КРУТОЕ",
+        "Sign in to an AI coding subscription, and this panel keeps track of how much of it you have left.":
+            "Войдите в подписку на ИИ-ассистента для кода, и эта панель покажет, сколько лимита осталось.",
+        "Name this account. It signs in through a private window, so your browser's current account isn't picked up.":
+            "Назовите этот аккаунт. Вход идёт через приватное окно, поэтому текущий аккаунт браузера не подхватывается.",
+        "Work": "Работа", "Confirm this code in your browser": "Подтвердите этот код в браузере",
+        "If the page shows a code instead of finishing, paste it here.":
+            "Если страница показала код вместо завершения входа, вставьте его сюда.",
+        "Code": "Код", "Open the sign-in page again": "Открыть страницу входа снова",
+        "Sign-in required": "Нужен вход", "Sign in to this account again": "Войти в этот аккаунт заново",
+        "Balance": "Баланс", "ACTIVE": "АКТИВЕН", "Autoswitch": "Автопереключение", "Autoswitch ⏎": "Автопереключение ⏎",
+        "Use": "Выбрать", "Use ⏎": "Выбрать ⏎", "Stop switching automatically": "Не переключаться автоматически",
+        "Last known": "Последние данные", "Subscriptions": "Подписки", "now": "сейчас",
+        "Theme": "Тема", "Plugin": "Плагин", "App": "Приложение",
+        "Make me a new Omarchy theme. Ask me what look or inspiration I have in mind, then build it following the Omarchy skill's theming guide and switch to it.":
+            "Сделай мне новую тему Omarchy. Спроси, какой вид или вдохновение я имею в виду, затем создай её по руководству по темам из навыка Omarchy и переключись на неё. Общайся со мной по-русски.",
+        "Make me a new Omarchy shell plugin. Ask me what I'd like it to do, then build it following the Omarchy skill's plugin guide and enable it.":
+            "Сделай мне новый плагин шелла Omarchy. Спроси, что он должен делать, затем создай его по руководству по плагинам из навыка Omarchy и включи. Общайся со мной по-русски.",
+        "Make me a new app for my Omarchy desktop. Ask me what it should do, then build it following the omarchy-app skill and install it so it shows up in the app launcher.":
+            "Сделай мне новое приложение для рабочего стола Omarchy. Спроси, что оно должно делать, затем создай его по навыку omarchy-app и установи, чтобы оно появилось в лаунчере. Общайся со мной по-русски.",
+    },
+    "indicators": {
+        "Day Light": "Дневной свет", "Night Light": "Ночной свет", "Dictate": "Диктовка",
+        "Allow Notifications": "Включить уведомления", "Silence Notifications": "Отключить уведомления",
+        "Stop recording": "Остановить запись", "Screen Recording": "Запись экрана",
+        "Allow Idle Lock & Screensaver": "Разрешить блокировку и заставку", "Stay Awake": "Не засыпать",
+    },
+    "microphone": {
+        "Microphone muted": "Микрофон выключен", "Microphone in use": "Микрофон используется",
+        "Microphone live": "Микрофон включён",
+    },
+    "system-update": {"Pending Omarchy Updates": "Доступны обновления Omarchy"},
+    "tray": {
+        "Tray icons": "Значки трея", "Pinned icons stay visible. Hidden icons never show.":
+            "Закреплённые значки всегда видны. Скрытые не показываются.",
+        "No tray items reporting.": "Нет значков в трее.", "Unknown": "Неизвестно",
+        "Unpin": "Открепить", "Pin": "Закрепить", "Show": "Показать", "Hide": "Скрыть",
+    },
 }
 
 # Точечные правки кода (там, где текст не литерал): (плагин, файл, старое, новое, ожидаемое число вхождений).
@@ -149,6 +212,30 @@ PATCHES = [
      'text: String(modelData).charAt(0).toUpperCase() + String(modelData).slice(1)',
      'text: ({"power-saver": "Экономия", "balanced": "Баланс", "performance": "Мощность"})[String(modelData)]'
      ' || (String(modelData).charAt(0).toUpperCase() + String(modelData).slice(1))', 1),
+    # Dropbox: единицы, «из» и относительное время собираются из кусков.
+    ("dropbox", "Model.js", 'var units = ["B", "KB", "MB", "GB", "TB"]', 'var units = ["Б", "КБ", "МБ", "ГБ", "ТБ"]', 1),
+    ("dropbox", "Model.js", '"0 B"', '"0 Б"', 1),
+    ("dropbox", "Model.js", '" of " + formatBytes(quotaBytes)', '" из " + formatBytes(quotaBytes)', 1),
+    ("dropbox", "Model.js", 'minutes + "m ago"', 'minutes + " мин назад"', 1),
+    ("dropbox", "Model.js", 'hours + "h ago"', 'hours + " ч назад"', 1),
+    ("dropbox", "Model.js", 'days + "d ago"', 'days + " дн назад"', 1),
+    ("dropbox", "Model.js", 'months + "mo ago"', 'months + " мес назад"', 1),
+    ("dropbox", "Model.js", 'Math.floor(days / 365) + "y ago"', 'Math.floor(days / 365) + " г назад"', 1),
+    # Agents: длительности и сводка в шапке. Названия окон лимитов (Session/Weekly/Monthly) не трогаем:
+    # по ним панель сопоставляет лимиты моделей с основным окном.
+    ("agents", "Panel.qml", 'days + "d " + (hours % 24) + "h"', 'days + " д " + (hours % 24) + " ч"', 1),
+    ("agents", "Panel.qml", 'hours + "h " + (minutes % 60) + "m"', 'hours + " ч " + (minutes % 60) + " мин"', 1),
+    ("agents", "Panel.qml", 'Math.max(1, minutes) + "m"', 'Math.max(1, minutes) + " мин"', 1),
+    ("agents", "Panel.qml", '" tokens this week"', '" токенов за неделю"', 1),
+    ("agents", "Panel.qml", '" tokens today"', '" токенов сегодня"', 1),
+    ("agents", "Panel.qml", '"Mostly " + topModel', '"Чаще всего " + topModel', 1),
+    ("agents", "Panel.qml", '"Busiest day: " + dayName(busiest)', '"Самый активный день: " + dayName(busiest)', 1),
+    ("agents", "Panel.qml", '["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]',
+     '["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"]', 1),
+    ("agents", "Panel.qml", '" · resets in "', '" · сброс через "', 1),
+    ("agents", "Panel.qml", '"% used"', '"% использовано"', 1),
+    ("agents", "Panel.qml", '"Start your default agent on a new " + tile.title.toLowerCase()',
+     '"Запустить агента по умолчанию: " + tile.title.toLowerCase()', 1),
 ]
 
 # Литерал не трогаем, если перед ним стоит оператор сравнения или поиск по значению.
@@ -171,6 +258,25 @@ def translate_text(text: str, table: dict, hits: set) -> str:
         return '"' + table[src] + '"'
 
     return STRING.sub(repl, text)
+
+
+def merge_emoji_keywords(target: Path) -> int:
+    """Дописывает русские названия в поле поиска `k` клона emojis.json (данные CLDR: data/emojis-ru.json)."""
+    f = target / "emojis.json"
+    ru_file = Path(__file__).resolve().parent / "data/emojis-ru.json"
+    if not f.exists() or not ru_file.exists():
+        return 0
+    ru = json.loads(ru_file.read_text())
+    items = json.loads(f.read_text())
+    added = 0
+    for item in items:
+        name = ru.get(item.get("e", ""))
+        if name and name not in item.get("k", ""):
+            item["k"] = (item.get("k", "") + " " + name).strip()
+            added += 1
+    if added:
+        f.write_text(json.dumps(items, ensure_ascii=False, separators=(",", ":")))
+    return added
 
 
 def ensure_clone(name: str) -> Path | None:
@@ -223,6 +329,8 @@ def main() -> int:
                 f.write_text(text.replace(old, new))
             elif new not in text:
                 print(f"translate-plugins: {name}/{fname}: не найден фрагмент для правки: {old[:50]}", file=sys.stderr)
+        if name == "emojis":
+            print(f"translate-plugins: emojis: добавлены русские названия к {merge_emoji_keywords(target)} эмодзи")
         print(f"translate-plugins: {name}: переведено строк {len(hits)}/{len(table)}")
     # Горячая перезагрузка не обновляет уже открытые панели — перезапускаем шелл целиком.
     # RUS_NO_RESTART=1 выставляет install.sh: он перезапустит шелл один раз в конце.

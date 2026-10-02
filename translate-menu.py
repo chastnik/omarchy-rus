@@ -109,6 +109,10 @@ def main() -> int:
         wrapper = Path.home() / ".local/bin/omarchy-menu-keybindings-ru"
         if key == "learn.keybindings" and wrapper.exists():
             new["action"] = str(wrapper)
+        for tool in ("tmux", "herdr"):
+            tool_wrapper = Path.home() / f".local/bin/omarchy-menu-{tool}-keybindings-ru"
+            if key == f"learn.{tool}-keybindings" and tool_wrapper.exists():
+                new["action"] = str(tool_wrapper)
         if new != entry:
             out[key] = new
 
