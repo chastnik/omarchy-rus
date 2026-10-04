@@ -17,7 +17,10 @@ piper_bin() { command -v piper-tts || command -v piper; }
 if ! piper_bin >/dev/null; then
   if ! omarchy pkg aur add piper-tts-bin; then
     # AUR бывает недоступен: тогда ставим пакет, собранный раньше (кэш yay), если он есть.
-    cached=$(ls -t "$HOME"/.cache/yay/piper-tts-bin/piper-tts-bin-[0-9]*.pkg.tar.* 2>/dev/null | grep -v -- '-debug-' | head -1 || true)
+    cached=""
+    for f in "$HOME"/.cache/yay/piper-tts-bin/piper-tts-bin-[0-9]*.pkg.tar.*; do
+      [ -e "$f" ] && [ "${f#*-debug-}" = "$f" ] && cached=$f
+    done
     if [ -n "$cached" ]; then
       echo "piper: AUR недоступен, ставлю собранный ранее пакет $cached"
       sudo pacman -U --noconfirm --needed "$cached"
