@@ -1,0 +1,109 @@
+# Строки, которые check-i18n.py не должен считать непереведёнными: бренды, имена программ, технические значения.
+.NET
+/usr/lib/libretro
+1Password
+AUR
+Alacritty
+Arch
+Bash
+Battle.net
+Bitstream Vera Mono
+Bitwarden
+Bluetooth
+Brave
+Brave Origin
+Bun
+Cascadia Mono
+ChatGPT Desktop
+Chrome
+Chromium
+Claude
+Clojure
+Cloudflare
+Codex
+Copilot
+Crush
+Cursor
+Cursor CLI
+Custom
+DHCP
+DNS
+DNS: NextDNS (45.90.28.0)
+Deno
+Dev
+Dropbox
+Edge
+Elixir
+Emacs
+Fido2
+Fira Code
+Firefox
+Foot
+Gemini
+Ghostty
+Go
+Google
+Grok
+Grok Bot
+Helix
+Herdr
+Hermes
+Hermes Desktop
+Hyprland
+Hyprsunset
+Iosevka
+Java
+JavaScript
+Kitty
+LM Studio
+Laravel
+Liberation Sans
+Lutris
+MB/s
+Meslo LG Mono
+Minecraft
+Muse Code
+NVIDIA GeForce NOW
+Neovim
+NextDNS
+Node.js
+NordVPN
+OCaml
+ONCE
+Ollama
+Omarchy
+OpenClaw
+OpenCode
+PHP
+Perplexity
+Phoenix
+Pi
+Plymouth
+Python
+RC
+RetroArch
+Ruby on Rails
+Rust
+SSHD
+Scala
+Signal
+Spotify
+Steam
+Sublime Text
+Symfony
+T3 Code
+TUI
+Tailscale
+Tmux
+Unknown
+VSCode
+Victor Code
+Vim
+Wi-Fi
+XCompose
+Xbox Cloud Gaming
+Yandex
+Zed
+Zen
+Zig
+omp

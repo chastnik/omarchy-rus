@@ -2,13 +2,15 @@
 # title: Автоповтор русификации после «omarchy update»
 # group: ui
 # default: off
-# desc: хук post-update.d: после обновления Omarchy заново собирает русское меню и копию Super+K-меню с новыми пунктами
+# desc: хук post-update.d: после обновления Omarchy пересобирает русское меню и Super+K-меню, проверяет устаревшие клоны плагинов и непереведённые строки
 set -euo pipefail
 D="$HOME/.local/share/omarchy-rus"
 HOOK_DIR="$HOME/.config/omarchy/hooks/post-update.d"
 # Скрипты копируются в постоянное место: папка с распакованным архивом может быть удалена.
 mkdir -p "$D" "$HOOK_DIR"
-install -m 755 "$RUS_DIR/translate-menu.py" "$RUS_DIR/keybindings-ru.py" "$D/"
+install -m 755 "$RUS_DIR/translate-menu.py" "$RUS_DIR/keybindings-ru.py" "$RUS_DIR/translate-plugins.py" \
+  "$RUS_DIR/check-i18n.py" "$RUS_DIR/dns-ru.py" "$D/"
+rm -rf "$D/data" && cp -r "$RUS_DIR/data" "$D/data"
 cat > "$HOOK_DIR/omarchy-rus.hook" <<'HOOK'
 #!/bin/bash
 # Установлен omarchy-rus (модуль post-update-hook). Обновление Omarchy могло добавить пункты меню и
@@ -25,6 +27,11 @@ for t in tmux herdr; do
     python3 "$D/keybindings-ru.py" "$t" || echo "omarchy-rus: не удалось обновить меню $t"
   fi
 done
+if ls "$HOME"/.config/omarchy/plugins/*/manifest.json >/dev/null 2>&1; then
+  # Клоны плагинов не обновляются сами: сообщаем, если оригинал изменился (пересоздать: translate-plugins.py --refresh).
+  python3 "$D/translate-plugins.py" --check --notify || true
+fi
+python3 "$D/check-i18n.py" --notify >/dev/null 2>&1 || true
 exit 0
 HOOK
 chmod +x "$HOOK_DIR/omarchy-rus.hook"

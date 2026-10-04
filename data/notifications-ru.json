@@ -1,0 +1,248 @@
+{
+ "exact": {
+  "All reminders have been cleared": "Все напоминания удалены",
+  "Can't disable the only active display": "Нельзя отключить единственный активный экран",
+  "Copied text from selection to clipboard": "Выделенный текст скопирован в буфер обмена",
+  "Crash capture disabled": "Перехват сбоев выключен",
+  "Crash capture enabled": "Перехват сбоев включён",
+  "Disable single-window square aspect ratio": "Квадратные пропорции одного окна выключены",
+  "Enable single-window square aspect ratio": "Квадратные пропорции одного окна включены",
+  "Download complete": "Загрузка завершена",
+  "Download failed": "Загрузка не удалась",
+  "Edit with Super + Alt + , (or click this)": "Править: Super + Alt + , (или нажмите сюда)",
+  "Open with Super + Alt + , (or click this)": "Открыть: Super + Alt + , (или нажмите сюда)",
+  "Editing config file": "Редактирование файла настроек",
+  "Extended mode restored": "Режим расширенного экрана восстановлен",
+  "Failed to start Windows VM": "Не удалось запустить виртуальную машину Windows",
+  "Hold F9 to dictate (or toggle with Super + Ctrl + X).": "Удерживайте F9 для диктовки (или переключайте Super + Ctrl + X).",
+  "Voxtype Dictation Ready": "Диктовка Voxtype готова",
+  "Laptop display disabled": "Экран ноутбука отключён",
+  "Laptop display enabled": "Экран ноутбука включён",
+  "No QR code found": "QR-код не найден",
+  "Select a region containing a QR code": "Выделите область с QR-кодом",
+  "QR code copied to clipboard": "QR-код скопирован в буфер обмена",
+  "No RetroArch cores found": "Ядра RetroArch не найдены",
+  "Start it with Super + Space": "Запустите через Super + Space",
+  "No background was found for theme": "Для темы не найдено фона",
+  "No external monitors found for mirror": "Нет внешних мониторов для дублирования",
+  "No laptop display found": "Экран ноутбука не найден",
+  "No laptop monitor found to mirror": "Нет монитора ноутбука для дублирования",
+  "No outstanding reminders": "Нет активных напоминаний",
+  "Upcoming reminders": "Ближайшие напоминания",
+  "Reminder": "Напоминание",
+  "Invalid reminder": "Неверное напоминание",
+  "Enter the number of minutes": "Введите число минут",
+  "No video found for download": "Видео для загрузки не найдено",
+  "No webcam devices found": "Веб-камера не найдена",
+  "Pending Omarchy Migrations": "Ожидающие миграции Omarchy",
+  "Recording process had to be force-killed. Video may be corrupted.": "Запись пришлось завершить принудительно. Видео может быть повреждено.",
+  "Refusing unsafe monitor name": "Небезопасное имя монитора отклонено",
+  "Restore using Super + Home on this workspace.": "Вернуть: Super + Home на этом рабочем столе.",
+  "Use Super + Alt + Home to save one for this workspace.": "Сохранить ширину для этого стола: Super + Alt + Home.",
+  "Saved and copied to clipboard.": "Сохранено и скопировано в буфер обмена.",
+  "Screen recording error": "Ошибка записи экрана",
+  "Screen recording saved": "Запись экрана сохранена",
+  "Screensaver disabled": "Заставка выключена",
+  "Screensaver enabled": "Заставка включена",
+  "Screensaver only runs in Alacritty, Foot, Ghostty, or Kitty": "Заставка работает только в Alacritty, Foot, Ghostty и Kitty",
+  "Screenshot saved to clipboard and file": "Снимок экрана сохранён в буфер и файл",
+  "Suspend now available in system menu": "Сон теперь доступен в системном меню",
+  "Suspend removed from system menu": "Сон убран из системного меню",
+  "TUI removed": "TUI-приложение удалено",
+  "Theme removed": "Тема удалена",
+  "Web app removed": "Веб-приложение удалено",
+  "The file chooser did not open": "Окно выбора файла не открылось",
+  "Could not share": "Не удалось поделиться",
+  "Time to recharge!": "Пора зарядить!",
+  "Transcoding video…": "Перекодирование видео…",
+  "URL copied to clipboard": "Ссылка скопирована в буфер обмена",
+  "Windows VM": "Виртуальная машина Windows",
+  "Install Dictation with Voxtype": "Установить диктовку Voxtype",
+  "Click to install voice dictation for Omarchy.": "Нажмите, чтобы установить голосовую диктовку для Omarchy.",
+  "Setup Fingerprint Reader": "Настроить сканер отпечатков",
+  "Enable sudo and unlocking with your fingerprint.": "Включите sudo и разблокировку по отпечатку пальца.",
+  "Learn Keybindings": "Горячие клавиши",
+  "Super + K for cheatsheet.": "Super + K — шпаргалка.",
+  "Super + Space for Omarchy Menu.": "Super + Space — меню Omarchy.",
+  "Set your default agent": "Выберите агента по умолчанию",
+  "Let your favorite agent help with Omarchy.": "Пусть любимый агент помогает с Omarchy.",
+  "Update System": "Обновить систему",
+  "Click to update the system.": "Нажмите, чтобы обновить систему.",
+  "Setup Wi-Fi": "Настроить Wi-Fi",
+  "Click to configure the wireless network.": "Нажмите, чтобы настроить беспроводную сеть.",
+  "No recent notifications": "Нет недавних уведомлений"
+ },
+ "patterns": [
+  [
+   "^Battery is down to (\\d+)%$",
+   "Заряд батареи: $1%"
+  ],
+  [
+   "^Created screenshot directory: (.*)$",
+   "Создан каталог снимков: $1"
+  ],
+  [
+   "^Could not send to (.*)$",
+   "Не удалось отправить: $1"
+  ],
+  [
+   "^Sent to (.*)$",
+   "Отправлено: $1"
+  ],
+  [
+   "^Mirroring enabled \\((.*)\\)$",
+   "Дублирование включено ($1)"
+  ],
+  [
+   "^No plugin to (.*)$",
+   "Нет плагина для действия: $1"
+  ],
+  [
+   "^No saved width found for (.*) on workspace (.*)$",
+   "Для $1 на рабочем столе $2 нет сохранённой ширины"
+  ],
+  [
+   "^Saved width for (.*) on workspace (.*)$",
+   "Ширина для $1 на рабочем столе $2 сохранена"
+  ],
+  [
+   "^Screen recording directory does not exist: (.*)$",
+   "Каталог записей экрана не существует: $1"
+  ],
+  [
+   "^Timezone is now set to (.*)$",
+   "Часовой пояс: $1"
+  ],
+  [
+   "^Transcoded to (.*)$",
+   "Перекодировано: $1"
+  ],
+  [
+   "^Workspace layout set to (.*)$",
+   "Раскладка рабочих столов: $1"
+  ],
+  [
+   "^You must restart (.*) to see font change$",
+   "Перезапустите $1, чтобы увидеть новый шрифт"
+  ]
+ ],
+ "loose": [
+  [
+   "^Battery (\\d+)%",
+   "Батарея $1%"
+  ],
+  [
+   "Holding at ",
+   "Держится на "
+  ],
+  [
+   "(\\S+(?: \\S+)?) to full",
+   "до полной зарядки: $1"
+  ],
+  [
+   "(\\S+(?: \\S+)?) left",
+   "осталось: $1"
+  ],
+  [
+   "(\\d+)h",
+   "$1 ч"
+  ],
+  [
+   "(\\d+)m\\b",
+   "$1 мин"
+  ],
+  [
+   "Week (\\d+)",
+   "Неделя $1"
+  ],
+  [
+   "Temp ",
+   "Темп. "
+  ],
+  [
+   "Wind ",
+   "Ветер "
+  ],
+  [
+   "(\\d+)km/h",
+   "$1 км/ч"
+  ],
+  [
+   "\\bMonday\\b",
+   "понедельник"
+  ],
+  [
+   "\\bTuesday\\b",
+   "вторник"
+  ],
+  [
+   "\\bWednesday\\b",
+   "среда"
+  ],
+  [
+   "\\bThursday\\b",
+   "четверг"
+  ],
+  [
+   "\\bFriday\\b",
+   "пятница"
+  ],
+  [
+   "\\bSaturday\\b",
+   "суббота"
+  ],
+  [
+   "\\bSunday\\b",
+   "воскресенье"
+  ],
+  [
+   "\\bJanuary\\b",
+   "января"
+  ],
+  [
+   "\\bFebruary\\b",
+   "февраля"
+  ],
+  [
+   "\\bMarch\\b",
+   "марта"
+  ],
+  [
+   "\\bApril\\b",
+   "апреля"
+  ],
+  [
+   "\\bMay\\b",
+   "мая"
+  ],
+  [
+   "\\bJune\\b",
+   "июня"
+  ],
+  [
+   "\\bJuly\\b",
+   "июля"
+  ],
+  [
+   "\\bAugust\\b",
+   "августа"
+  ],
+  [
+   "\\bSeptember\\b",
+   "сентября"
+  ],
+  [
+   "\\bOctober\\b",
+   "октября"
+  ],
+  [
+   "\\bNovember\\b",
+   "ноября"
+  ],
+  [
+   "\\bDecember\\b",
+   "декабря"
+  ]
+ ],
+ "loose_gate": "^Battery \\d+%|Week \\d+|Temp |Wind "
+}

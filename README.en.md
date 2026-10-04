@@ -68,6 +68,8 @@ The Omarchy shell is restarted once at the end if panels were changed. Log out a
 | `vconsole-font` | Simple | ✓ | Cyrillic TTY font (`LatArCyrHeb-16`), takes effect after reboot |
 | `office` | Simple | ✓ | LibreOffice: Russian pack, hyphenation, thesaurus (if LibreOffice is installed) |
 | `telegram` | Apps | ✓ | `telegram-desktop` |
+| `browsers` | Apps | ✓ | Chromium/Brave/Chrome: `--lang=ru` and `--accept-lang` in the flags file; Firefox: `firefox-i18n-ru` package |
+| `piper` | Apps | — | neural Russian Piper voice (Irina, offline), the `say-ru` command and a speech-dispatcher module |
 | `weather` | Apps | ✓ | weather widget: `unit=metric`, translation, Russian city geocoding |
 | `dns` | Apps | ✓ | Russia-friendly DNS pills in the network widget (Yandex, DNS4EU, NextDNS) + root helper `omarchy-dns-ru` |
 | `voxtype` | Apps | ✓ | Russian speech recognition (Parakeet), see below |
@@ -76,7 +78,7 @@ The Omarchy shell is restarted once at the end if panels were changed. Log out a
 | `keybindings` | UI | ✓ | Russian keybindings menu (Super+K): a copy of the stock one with translated descriptions |
 | `fastfetch` | UI | ✓ | `~/.config/fastfetch/config.jsonc` with Russian headings ("About") |
 | `tts` | UI | ✓ | `speech-dispatcher` + `espeak-ng`, Russian as the default language |
-| `post-update-hook` | UI | — | `post-update.d` hook: after `omarchy update` rebuilds the Russian menu and the Super+K menu |
+| `post-update-hook` | UI | — | `post-update.d` hook: after `omarchy update` rebuilds the Russian menu and the Super+K menu, and warns about stale plugin clones and untranslated strings |
 | `ecp` | Work | — | PC/SC for e-signatures: `pcsclite`, `ccid`, `opensc`, `pcsc-tools`, `pcscd` |
 | `mincifry` | Work | — | Ministry certificates + weekly expiry check |
 
@@ -105,7 +107,10 @@ flowchart TD
 | `.github/workflows/` | CI (`ci.yml`) and tag-triggered release build (`release.yml`) |
 | `keybindings-ru.py` | Super+K menu translation and rebinding |
 | `dns-ru.py` | root-helper generator and network widget patch for the `dns` module |
-| `translate-plugins.py` | translates bar plugins; `./translate-plugins.py [name…] [--except name…]` |
+| `translate-plugins.py` | translates bar plugins; `./translate-plugins.py [name…] [--except name…]`, `--check [--notify]`, `--refresh [name…]` |
+| `check-i18n.py` | translation completeness check (menu, notifications, plugins, patches); `--strict`, `--notify` |
+| `data/` | dictionaries: `emojis-ru.json`, `notifications-ru.json` (notifications), `i18n-ignore.txt` (checker exclusions) |
+| `CHANGELOG.md` | changelog; the version's section becomes the release notes |
 | `install-mincifry-ca.sh` | Ministry certificates and expiry monitoring |
 | `input.lua.snippet` | snippet appended to `~/.config/hypr/input.lua` |
 
@@ -184,13 +189,27 @@ flowchart TD
 ```
 
 The script is idempotent. If a `PATCHES` fragment is not found (the plugin changed upstream), it writes a message to stderr.
-**Downside of clones:** they do not receive upstream plugin updates. After `omarchy update`, if a panel breaks or you want the
-fresh version: `rm -r ~/.config/omarchy/plugins/$USER.<name>` and run `./translate-plugins.py`
+**Downside of clones:** they do not receive upstream plugin updates. So the script records which upstream files each clone was
+made from, and `./translate-plugins.py --check` shows which originals changed after `omarchy update` (`--notify` sends a
+notification; the `post-update-hook` module does the same). To recreate stale clones and translate again run
+`./translate-plugins.py --refresh` (optionally with plugin names; the DNS patch for the network widget is re-applied).
+Manually: `rm -r ~/.config/omarchy/plugins/$USER.<name>` and run `./translate-plugins.py`
 (to get the original back: `omarchy plugin enable omarchy.<name>`).
 Also translated: Dropbox, Agents (except the Session/Weekly/Monthly limit-window names, which the panel parses) and bar widgets: indicators, microphone, updates, tray.
 Emoji search also works in Russian: Russian names (CLDR, `data/emojis-ru.json`) are appended to the clone's keywords.
 Not translated: lock screen and polkit (see "Deliberately not included").
 Add new plugins to `TRANSLATIONS` the same way.
+
+### Notifications
+Notification texts arrive from Omarchy scripts as ready-made English strings, so they are translated at display time: the
+`notifications` plugin clone gets a `ruText` function with the `data/notifications-ru.json` dictionary (exact strings, patterns
+such as "Battery is down to N%", and "loose" rules for the battery, time and weather status). History is covered too.
+Counts are inflected the Russian way (`plural_js` in `translate-plugins.py`): 1 напоминание, 2 напоминания, 5 напоминаний.
+
+### Completeness check (`check-i18n.py`)
+`./check-i18n.py` compares the dictionaries with what is on the system now: untranslated menu items, notification texts from
+`/usr/share/omarchy/bin`, English literals left in clones, and dead `PATCHES`. Brands and technical values are listed in
+`data/i18n-ignore.txt`. `--strict` returns exit code 1 on findings, `--notify` sends a notification.
 
 ## DNS in the network widget (`dns`, `dns-ru.py`)
 The stock pills are Cloudflare and Google, and `omarchy-dns` accepts only those (+ DHCP/Custom) and lives in `/usr/share/omarchy/`.

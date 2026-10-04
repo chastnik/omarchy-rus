@@ -9,9 +9,16 @@
 Внутренние ключи (DHCP/Cloudflare/Google/Custom и т.п.) в словарях нет намеренно.
 Скрипт идемпотентен. ВАЖНО: клон не получает обновления оригинального плагина; после
 `omarchy update` можно удалить ~/.config/omarchy/plugins/<user>.<имя> и запустить скрипт заново.
+
+Использование:
+  translate-plugins.py [имя ...] [--except имя ...]   перевести плагины (без аргументов — все)
+  translate-plugins.py --check [--notify]             найти клоны, чей оригинал изменился после «omarchy update»
+  translate-plugins.py --refresh [имя ...]            пересоздать устаревшие (или указанные) клоны и перевести заново
 """
 import getpass
+import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -29,6 +36,7 @@ TRANSLATIONS = {
         "year": "год",
     },
     "network": {
+        "Ping": "Пинг",
         "Auto": "Авто", "Automatic": "Автоматически", "AUTOMATIC": "АВТОМАТИЧЕСКИ",
         "Connect": "Подключить", "Connected": "Подключено",
         "Connecting...": "Подключение...", "Connecting…": "Подключение…",
@@ -71,6 +79,7 @@ TRANSLATIONS = {
         "Untangling wires": "Распутываем провода", "Wrangling codecs": "Укрощаем кодеки",
     },
     "audio": {
+        "Audio": "Звук",
         "Concert hall": "Концертный зал", "Cranked up": "На полную", "Easy listening": "Лёгкая музыка",
         "INPUT": "ВХОД", "OUTPUT": "ВЫХОД", "SOURCES": "ИСТОЧНИКИ", "Microphone": "Микрофон",
         "Murmur": "Бормотание", "Mute": "Выключить звук", "Unmute": "Включить звук",
@@ -157,6 +166,7 @@ TRANSLATIONS = {
         "Unknown time": "Время неизвестно", "Just now": "Только что",
     },
     "agents": {
+        "Prepaid credits": "Предоплаченные кредиты", "Resets in ": "Сброс через ", "Limit": "Лимит",
         "Agents": "Агенты", "Starting…": "Запуск…", "Checking the code…": "Проверка кода…",
         "The sign-in didn't finish.": "Вход не завершён.",
         "Back to the limits": "К лимитам", "Add a subscription": "Добавить подписку",
@@ -200,6 +210,47 @@ TRANSLATIONS = {
     },
 }
 
+PLUGINS_SRC = Path("/usr/share/omarchy/shell/plugins")
+STATE_FILE = Path.home() / ".local/share/omarchy-rus/clones.json"
+NOTIFICATIONS_DATA = Path(__file__).resolve().parent / "data" / "notifications-ru.json"
+
+
+def plural_js(n: str, one: str, few: str, many: str) -> str:
+    """JS-выражение с русским склонением по числу n: 1 напоминание, 2 напоминания, 5 напоминаний."""
+    return (f'({n} % 10 === 1 && {n} % 100 !== 11 ? "{one}" : ({n} % 10 >= 2 && {n} % 10 <= 4 '
+            f'&& ({n} % 100 < 12 || {n} % 100 > 14) ? "{few}" : "{many}"))')
+
+
+def notifications_js() -> str:
+    """Функция ruText для NotificationLogic.js: словарь data/notifications-ru.json встраивается литералом."""
+    d = json.loads(NOTIFICATIONS_DATA.read_text())
+    lit = lambda x: json.dumps(x, ensure_ascii=False)
+    return f"""// omarchy-rus: русский текст уведомлений. Строки приходят из скриптов Omarchy готовыми английскими.
+var RU_EXACT = {lit(d["exact"])}
+var RU_PATTERNS = {lit(d["patterns"])}
+var RU_LOOSE = {lit(d["loose"])}
+var RU_LOOSE_GATE = new RegExp({lit(d["loose_gate"])})
+
+function ruLine(line) {{
+  var exact = RU_EXACT[line]
+  if (exact !== undefined) return exact
+  for (var i = 0; i < RU_PATTERNS.length; i++) {{
+    var re = new RegExp(RU_PATTERNS[i][0])
+    if (re.test(line)) return line.replace(re, RU_PATTERNS[i][1])
+  }}
+  if (RU_LOOSE_GATE.test(line)) {{
+    for (var j = 0; j < RU_LOOSE.length; j++) line = line.replace(new RegExp(RU_LOOSE[j][0], "g"), RU_LOOSE[j][1])
+  }}
+  return line
+}}
+
+function ruText(text) {{
+  return String(text || "").split("\\n").map(ruLine).join("\\n")
+}}
+
+"""
+
+
 # Точечные правки кода (там, где текст не литерал): (плагин, файл, старое, новое, ожидаемое число вхождений).
 # Даты форматируем русской локалью явно, т.к. процесс шелла может работать с en_US.
 PATCHES = [
@@ -214,9 +265,19 @@ PATCHES = [
      ' || (String(modelData).charAt(0).toUpperCase() + String(modelData).slice(1))', 1),
     # Подсказка Reminder приходит из omarchy-reminder готовой английской строкой ("Set Reminder", "N reminders").
     ("indicators", "indicators/Reminder.qml", 'tooltip = String(data.tooltip || "")',
-     'tooltip = reminderCount === 0 ? "Создать напоминание" : reminderCount + (reminderCount % 10 === 1 && reminderCount % 100 !== 11'
-     ' ? " напоминание" : (reminderCount % 10 >= 2 && reminderCount % 10 <= 4 && (reminderCount % 100 < 12 || reminderCount % 100 > 14)'
-     ' ? " напоминания" : " напоминаний"))', 1),
+     'tooltip = reminderCount === 0 ? "Создать напоминание" : reminderCount + " " + '
+     + plural_js("reminderCount", "напоминание", "напоминания", "напоминаний"), 1),
+    ("clipboard", "ClipboardHistory.js", 'paths.length + " files"',
+     'paths.length + " " + ' + plural_js("paths.length", "файл", "файла", "файлов"), 1),
+    ("agents", "Panel.qml", '"Merged from " + provider.syncDeviceCount + " device" + (provider.syncDeviceCount === 1 ? "" : "s")',
+     '"Объединено с " + provider.syncDeviceCount + " " + ' + plural_js("provider.syncDeviceCount", "устройства", "устройств", "устройств"), 1),
+    # Уведомления: переводим на показе (карточка и история), словарь — data/notifications-ru.json.
+    ("notifications", "NotificationLogic.js", "function isChromiumDerived(app, appIcon) {",
+     notifications_js() + "function isChromiumDerived(app, appIcon) {", 1),
+    ("notifications", "components/NotificationCard.qml", "text: root.summary",
+     "text: NotificationLogic.ruText(root.summary)", 1),
+    ("notifications", "components/NotificationCard.qml", "NotificationLogic.styledBody(body, app, appIcon)",
+     "NotificationLogic.styledBody(NotificationLogic.ruText(body), app, appIcon)", 1),
     # Dropbox: единицы, «из» и относительное время собираются из кусков.
     ("dropbox", "Model.js", 'var units = ["B", "KB", "MB", "GB", "TB"]', 'var units = ["Б", "КБ", "МБ", "ГБ", "ТБ"]', 1),
     ("dropbox", "Model.js", '"0 B"', '"0 Б"', 1),
@@ -226,21 +287,11 @@ PATCHES = [
     ("dropbox", "Model.js", 'days + "d ago"', 'days + " дн назад"', 1),
     ("dropbox", "Model.js", 'months + "mo ago"', 'months + " мес назад"', 1),
     ("dropbox", "Model.js", 'Math.floor(days / 365) + "y ago"', 'Math.floor(days / 365) + " г назад"', 1),
-    # Agents: длительности и сводка в шапке. Названия окон лимитов (Session/Weekly/Monthly) не трогаем:
+    # Agents: длительности. Названия окон лимитов (Session/Weekly/Monthly) не трогаем:
     # по ним панель сопоставляет лимиты моделей с основным окном.
     ("agents", "Panel.qml", 'days + "d " + (hours % 24) + "h"', 'days + " д " + (hours % 24) + " ч"', 1),
     ("agents", "Panel.qml", 'hours + "h " + (minutes % 60) + "m"', 'hours + " ч " + (minutes % 60) + " мин"', 1),
     ("agents", "Panel.qml", 'Math.max(1, minutes) + "m"', 'Math.max(1, minutes) + " мин"', 1),
-    ("agents", "Panel.qml", '" tokens this week"', '" токенов за неделю"', 1),
-    ("agents", "Panel.qml", '" tokens today"', '" токенов сегодня"', 1),
-    ("agents", "Panel.qml", '"Mostly " + topModel', '"Чаще всего " + topModel', 1),
-    ("agents", "Panel.qml", '"Busiest day: " + dayName(busiest)', '"Самый активный день: " + dayName(busiest)', 1),
-    ("agents", "Panel.qml", '["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]',
-     '["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"]', 1),
-    ("agents", "Panel.qml", '" · resets in "', '" · сброс через "', 1),
-    ("agents", "Panel.qml", '"% used"', '"% использовано"', 1),
-    ("agents", "Panel.qml", '"Start your default agent on a new " + tile.title.toLowerCase()',
-     '"Запустить агента по умолчанию: " + tile.title.toLowerCase()', 1),
 ]
 
 # Литерал не трогаем, если перед ним стоит оператор сравнения или поиск по значению.
@@ -296,11 +347,155 @@ def ensure_clone(name: str) -> Path | None:
     return target
 
 
-def main() -> int:
-    import os
+def omarchy_version() -> str:
+    try:
+        return Path("/usr/share/omarchy/version").read_text().strip()
+    except OSError:
+        return "?"
+
+
+def sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def related_originals(name: str, target: Path) -> dict:
+    """Файлы оригинала, из которых сделан клон: {путь относительно plugins/: sha256}.
+
+    Соответствие эвристическое: у клона нет ссылки на источник, поэтому ищем в оригинале файлы,
+    чей путь оканчивается путём файла клона и у которых в пути есть имя плагина (или имя файла = имя плагина).
+    """
+    mine = [f.relative_to(target).as_posix() for f in target.rglob("*")
+            if f.is_file() and f.suffix in (".qml", ".js") and not f.name.startswith(".")]
+    out = {}
+    for f in PLUGINS_SRC.rglob("*"):
+        if not f.is_file() or f.suffix not in (".qml", ".js") or "dev-gallery" in f.parts:
+            continue
+        rel = f.relative_to(PLUGINS_SRC).as_posix()
+        if any(rel.endswith("/" + m) or rel == m for m in mine) and (name in f.parts or f.stem.lower() == name):
+            out[rel] = sha(f)
+    return out
+
+
+def load_state() -> dict:
+    try:
+        return json.loads(STATE_FILE.read_text())
+    except (OSError, ValueError):
+        return {"plugins": {}}
+
+
+def save_state(state: dict) -> None:
+    state["omarchy"] = omarchy_version()
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=1, sort_keys=True))
+
+
+def process(name: str) -> bool:
+    table = TRANSLATIONS[name]
+    target = ensure_clone(name)
+    if not target:
+        return False
+    hits: set = set()
+    for f in sorted(list(target.rglob("*.qml")) + list(target.rglob("*.js"))):
+        old = f.read_text()
+        new = translate_text(old, table, hits)
+        if new != old:
+            f.write_text(new)
+    for pname, fname, old, new, count in PATCHES:
+        if pname != name:
+            continue
+        f = target / fname
+        text = f.read_text()
+        if new in text:
+            continue
+        if old in text:
+            if text.count(old) != count:
+                print(f"translate-plugins: {name}/{fname}: ожидалось {count} вхождений, найдено {text.count(old)}", file=sys.stderr)
+                continue
+            f.write_text(text.replace(old, new))
+        else:
+            print(f"translate-plugins: {name}/{fname}: не найден фрагмент для правки: {old[:50]}", file=sys.stderr)
+    if name == "emojis":
+        print(f"translate-plugins: emojis: добавлены русские названия к {merge_emoji_keywords(target)} эмодзи")
+    print(f"translate-plugins: {name}: переведено строк {len(hits)}/{len(table)}")
+    return True
+
+
+def record_baseline(names) -> None:
+    """Запоминает, с какой версией оригинала сделан клон (для --check)."""
+    state = load_state()
+    for n in names:
+        target = PLUGINS_DIR / f"{USER}.{n}"
+        if target.exists():
+            state.setdefault("plugins", {})[n] = related_originals(n, target)
+    save_state(state)
+
+
+def stale_clones() -> tuple:
+    """(устаревшие, без базовой точки): клоны, чей оригинал изменился после «omarchy update»."""
+    state = load_state().get("plugins", {})
+    stale, unknown = [], []
+    for n in TRANSLATIONS:
+        target = PLUGINS_DIR / f"{USER}.{n}"
+        if not target.exists():
+            continue
+        if n not in state:
+            unknown.append(n)
+        elif state[n] != related_originals(n, target):
+            stale.append(n)
+    return stale, unknown
+
+
+def cmd_check(notify: bool) -> int:
+    stale, unknown = stale_clones()
+    if unknown:
+        record_baseline(unknown)
+        print(f"translate-plugins: запомнил текущее состояние оригиналов для: {', '.join(unknown)}")
+    if not stale:
+        print("translate-plugins: все клоны актуальны")
+        return 0
+    print(f"translate-plugins: оригиналы изменились после обновления Omarchy: {', '.join(stale)}")
+    print("Пересоздать клоны и перевести заново: translate-plugins.py --refresh")
+    if notify:
+        subprocess.run(["omarchy-notification-send", "-g", "", "Русификация: плагины обновились",
+                        f"Изменились оригиналы: {', '.join(stale)}. Выполните: translate-plugins.py --refresh"],
+                       capture_output=True)
+    return 3
+
+
+def cmd_refresh(names) -> int:
+    import shutil
+    stale = names or stale_clones()[0]
+    if not stale:
+        print("translate-plugins: обновлять нечего")
+        return 0
+    bad = [n for n in stale if n not in TRANSLATIONS]
+    if bad:
+        print(f"translate-plugins: неизвестные плагины: {', '.join(bad)}", file=sys.stderr)
+        return 2
     failed = 0
+    for n in stale:
+        target = PLUGINS_DIR / f"{USER}.{n}"
+        if target.exists():
+            shutil.rmtree(target)
+        if not process(n):
+            failed += 1
+    record_baseline([n for n in stale])
+    here = Path(__file__).resolve().parent
+    if "network" in stale and Path("/usr/local/bin/omarchy-dns-ru").exists() and (here / "dns-ru.py").exists():
+        subprocess.run([sys.executable, str(here / "dns-ru.py"), "panel"])
+    if not os.environ.get("RUS_NO_RESTART"):
+        subprocess.run(["omarchy", "restart", "shell"], capture_output=True)
+    return 1 if failed else 0
+
+
+def main() -> int:
     # Использование: translate-plugins.py [имя ...] [--except имя ...]; без аргументов — все плагины.
     args = sys.argv[1:]
+    if "--check" in args:
+        return cmd_check("--notify" in args)
+    if "--refresh" in args:
+        return cmd_refresh([a for a in args if a != "--refresh"])
+    failed = 0
     excluded = set()
     if "--except" in args:
         i = args.index("--except")
@@ -310,33 +505,13 @@ def main() -> int:
     if unknown:
         print(f"translate-plugins: неизвестные плагины: {', '.join(unknown)}", file=sys.stderr)
         return 2
+    done = []
     for name in [n for n in selected if n not in excluded]:
-        table = TRANSLATIONS[name]
-        target = ensure_clone(name)
-        if not target:
+        if process(name):
+            done.append(name)
+        else:
             failed += 1
-            continue
-        hits: set = set()
-        for f in sorted(list(target.rglob("*.qml")) + list(target.rglob("*.js"))):
-            old = f.read_text()
-            new = translate_text(old, table, hits)
-            if new != old:
-                f.write_text(new)
-        for pname, fname, old, new, count in PATCHES:
-            if pname != name:
-                continue
-            f = target / fname
-            text = f.read_text()
-            if old in text:
-                if text.count(old) != count:
-                    print(f"translate-plugins: {name}/{fname}: ожидалось {count} вхождений, найдено {text.count(old)}", file=sys.stderr)
-                    continue
-                f.write_text(text.replace(old, new))
-            elif new not in text:
-                print(f"translate-plugins: {name}/{fname}: не найден фрагмент для правки: {old[:50]}", file=sys.stderr)
-        if name == "emojis":
-            print(f"translate-plugins: emojis: добавлены русские названия к {merge_emoji_keywords(target)} эмодзи")
-        print(f"translate-plugins: {name}: переведено строк {len(hits)}/{len(table)}")
+    record_baseline(done)
     # Горячая перезагрузка не обновляет уже открытые панели — перезапускаем шелл целиком.
     # RUS_NO_RESTART=1 выставляет install.sh: он перезапустит шелл один раз в конце.
     if not os.environ.get("RUS_NO_RESTART"):

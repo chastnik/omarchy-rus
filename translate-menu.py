@@ -68,13 +68,14 @@ LABELS = {
     "Package": "Пакет", "Web App": "Веб-приложение", "Service": "Сервис", "Services": "Сервисы",
     "Development": "Разработка", "AI": "ИИ", "Gaming": "Игры", "Windows": "Windows",
     "Preinstalls": "Предустановленное", "Dictation": "Диктовка", "Xbox Controllers": "Геймпады Xbox",
+    "Xbox Controllers (\U000f00af)": "Геймпады Xbox (\U000f00af)",
     "Chromium Account": "Аккаунт Chromium", "Docker DB": "БД в Docker",
     "Heroic (Epic Games)": "Heroic (Epic Games)", "RetroArch Game Launcher": "Лаунчер игр RetroArch",
     # обновление
     "Channel": "Канал", "Extra Themes": "Доп. темы", "Process": "Процесс", "Firmware": "Прошивка",
     "Password": "Пароль", "Timezone": "Часовой пояс", "Time": "Время", "Stable": "Стабильный",
     "Audio": "Звук", "Bluetooth": "Bluetooth", "Trackpad": "Трекпад",
-    "Drive Encryption": "Шифрование диска", "User": "Пользователь",
+    "Drive Encryption": "Шифрование диска", "User": "Пользователь", "Shell": "Оболочка",
 }
 
 # Заголовки подменю (title). Если title не задан — используется label.

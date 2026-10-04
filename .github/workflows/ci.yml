@@ -26,7 +26,24 @@ jobs:
           shellcheck -S warning install.sh install-mincifry-ca.sh modules/*.sh
 
       - name: Python syntax
-        run: python3 -m py_compile translate-menu.py translate-plugins.py dns-ru.py keybindings-ru.py
+        run: python3 -m py_compile translate-menu.py translate-plugins.py dns-ru.py keybindings-ru.py check-i18n.py
+
+      - name: Dictionaries are valid
+        run: |
+          python3 - <<'PY'
+          import json, re
+          json.load(open("data/emojis-ru.json"))
+          d = json.load(open("data/notifications-ru.json"))
+          for k in ("exact", "patterns", "loose", "loose_gate"):
+              assert k in d, k
+          for pat, _ in d["patterns"] + d["loose"]:
+              re.compile(pat)
+          re.compile(d["loose_gate"])
+          print("exact:", len(d["exact"]), "patterns:", len(d["patterns"]) + len(d["loose"]))
+          PY
+
+      - name: Changelog has an unreleased or latest section
+        run: grep -qE '^## \[' CHANGELOG.md
 
       - name: Modules have metadata and are executable
         run: |

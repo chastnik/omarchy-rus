@@ -32,6 +32,11 @@ jobs:
             ver="dev-${GITHUB_SHA::7}"
           fi
           echo "ver=$ver" >> "$GITHUB_OUTPUT"
+          # Для тега в CHANGELOG.md должен быть раздел "## [X.Y.Z]": он станет описанием релиза.
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            awk -v v="${ver#v}" 'index($0, "## [" v "]")==1 {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > changelog-section.md
+            grep -q '[^[:space:]]' changelog-section.md || { echo "В CHANGELOG.md нет раздела ## [${ver#v}] или он пуст"; exit 1; }
+          fi
 
       - name: Build archive
         run: |
@@ -61,7 +66,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VER: ${{ steps.ver.outputs.ver }}
         run: |
-          cat > notes.md <<NOTES
+          { cat changelog-section.md; echo; } > notes.md
+          cat >> notes.md <<NOTES
           ## Установка
           \`\`\`bash
           curl -fLO https://github.com/${GITHUB_REPOSITORY}/releases/download/${VER}/omarchy-rus.tar.gz
