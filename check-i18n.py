@@ -33,7 +33,14 @@ UI_KEYS = ("text", "label", "title", "placeholderText", "description", "subtitle
            "displayName", "hint", "headline", "message", "emptyText", "activeTooltipText", "inactiveTooltipText")
 KEY_LITERAL = re.compile(r'\b(' + "|".join(UI_KEYS) + r')\s*:\s*"((?:[^"\\\n]|\\.)*)"')
 TERNARY_LITERAL = re.compile(r'[?:]\s*"((?:[^"\\\n]|\\.)*)"')
-PHRASE = re.compile(r"^[A-Z][A-Za-z0-9'’ ,.\-&/()…!?:%+]*[a-z][A-Za-z0-9'’ ,.\-&/()…!?:%+]*$")
+_CH = r"[A-Za-z0-9'’ ,.\-&/()…!?:%+]|\\n"
+PHRASE = re.compile(r"^[A-Z](?:%s)*[a-z](?:%s)*$" % (_CH, _CH))
+# Заголовки секций капсом («TOKENS BY DAY», «BALANCE»); короткие коды (USD, GPT) не считаем.
+CAPS = re.compile(r"^[A-Z][A-Z0-9 ,.\-&/()…!?:%+]*$")
+
+
+def looks_english(s: str) -> bool:
+    return bool(PHRASE.match(s)) or bool(CAPS.match(s) and (len(s) >= 5 or " " in s))
 
 
 def load_module(path: Path, name: str):
@@ -116,7 +123,7 @@ def check_plugins(skip: set) -> list:
                 cands = [m.group(2) for m in KEY_LITERAL.finditer(line)]
                 cands += [m.group(1) for m in TERNARY_LITERAL.finditer(line)]
                 for s in cands:
-                    if s in table or s in skip or not PHRASE.match(s) or len(s) < 3:
+                    if s in table or s in skip or not looks_english(s) or len(s) < 3:
                         continue
                     if (name, s) in seen:
                         continue

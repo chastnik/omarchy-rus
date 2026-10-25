@@ -166,30 +166,15 @@ TRANSLATIONS = {
         "Unknown time": "Время неизвестно", "Just now": "Только что",
     },
     "agents": {
-        "Prepaid credits": "Предоплаченные кредиты", "Resets in ": "Сброс через ", "Limit": "Лимит",
-        "Agents": "Агенты", "Starting…": "Запуск…", "Checking the code…": "Проверка кода…",
-        "The sign-in didn't finish.": "Вход не завершён.",
-        "Back to the limits": "К лимитам", "Add a subscription": "Добавить подписку",
-        "Start the default agent": "Запустить агента по умолчанию", "MAKE SOMETHING COOL": "СОЗДАЙТЕ ЧТО-НИБУДЬ КРУТОЕ",
-        "Sign in to an AI coding subscription, and this panel keeps track of how much of it you have left.":
-            "Войдите в подписку на ИИ-ассистента для кода, и эта панель покажет, сколько лимита осталось.",
-        "Name this account. It signs in through a private window, so your browser's current account isn't picked up.":
-            "Назовите этот аккаунт. Вход идёт через приватное окно, поэтому текущий аккаунт браузера не подхватывается.",
-        "Work": "Работа", "Confirm this code in your browser": "Подтвердите этот код в браузере",
-        "If the page shows a code instead of finishing, paste it here.":
-            "Если страница показала код вместо завершения входа, вставьте его сюда.",
-        "Code": "Код", "Open the sign-in page again": "Открыть страницу входа снова",
-        "Sign-in required": "Нужен вход", "Sign in to this account again": "Войти в этот аккаунт заново",
-        "Balance": "Баланс", "ACTIVE": "АКТИВЕН", "Autoswitch": "Автопереключение", "Autoswitch ⏎": "Автопереключение ⏎",
-        "Use": "Выбрать", "Use ⏎": "Выбрать ⏎", "Stop switching automatically": "Не переключаться автоматически",
-        "Last known": "Последние данные", "Subscriptions": "Подписки", "now": "сейчас",
-        "Theme": "Тема", "Plugin": "Плагин", "App": "Приложение",
-        "Make me a new Omarchy theme. Ask me what look or inspiration I have in mind, then build it following the Omarchy skill's theming guide and switch to it.":
-            "Сделай мне новую тему Omarchy. Спроси, какой вид или вдохновение я имею в виду, затем создай её по руководству по темам из навыка Omarchy и переключись на неё. Общайся со мной по-русски.",
-        "Make me a new Omarchy shell plugin. Ask me what I'd like it to do, then build it following the Omarchy skill's plugin guide and enable it.":
-            "Сделай мне новый плагин шелла Omarchy. Спроси, что он должен делать, затем создай его по руководству по плагинам из навыка Omarchy и включи. Общайся со мной по-русски.",
-        "Make me a new app for my Omarchy desktop. Ask me what it should do, then build it following the omarchy-app skill and install it so it shows up in the app launcher.":
-            "Сделай мне новое приложение для рабочего стола Omarchy. Спроси, что оно должно делать, затем создай его по навыку omarchy-app и установи, чтобы оно появилось в лаунчере. Общайся со мной по-русски.",
+        # Панель 4.0.5+: один агент на экране, секции «Баланс», «Лимиты», «Токены по дням/моделям».
+        "Prepaid credits": "Предоплаченные кредиты", "Resets in ": "Сброс через ", "Limit": "Лимит", "now": "сейчас",
+        "Subscription": "Подписка", "Today": "Сегодня", "Unknown": "Неизвестно",
+        "BALANCE": "БАЛАНС", "LIMITS": "ЛИМИТЫ", "TOKENS BY DAY": "ТОКЕНЫ ПО ДНЯМ", "TOKENS BY MODEL": "ТОКЕНЫ ПО МОДЕЛЯМ",
+        "No AI coding subscriptions found.\\nAgents show up here once you've used them.":
+            "Подписки на ИИ-ассистентов для кода не найдены.\\nАгенты появятся здесь после первого использования.",
+        "Sun": "Вс", "Mon": "Пн", "Tue": "Вт", "Wed": "Ср", "Thu": "Чт", "Fri": "Пт", "Sat": "Сб",
+        " tokens": " токенов", " · estimated": " · оценка",
+        "In ": "Вход ", " · out ": " · выход ", " · cache read ": " · чтение кеша ", " · cache write ": " · запись кеша ",
     },
     "indicators": {
         "Day Light": "Дневной свет", "Night Light": "Ночной свет", "Dictate": "Диктовка",
@@ -289,6 +274,13 @@ PATCHES = [
     ("dropbox", "Model.js", 'Math.floor(days / 365) + "y ago"', 'Math.floor(days / 365) + " г назад"', 1),
     # Agents: длительности. Названия окон лимитов (Session/Weekly/Monthly) не трогаем:
     # по ним панель сопоставляет лимиты моделей с основным окном.
+    ("agents", "Panel.qml", ': dayName(day.date) + " " + (parsed.getMonth() + 1) + "/" + parsed.getDate()',
+     ': dayName(day.date) + " " + parsed.getDate() + "." + (parsed.getMonth() + 1)', 1),
+    ("agents", "Panel.qml", 'formatMoney(b.spent, b.currency) + " spent of " + formatMoney(b.funded, b.currency) + " funded"',
+     '"потрачено " + formatMoney(b.spent, b.currency) + " из " + formatMoney(b.funded, b.currency)', 1),
+    ("agents", "Panel.qml", 'text += " · " + Number(provider.todayPrompts || 0) + " prompts · "\n        + Number(provider.todaySessions || 0) + " sessions"',
+     'text += " · " + Number(provider.todayPrompts || 0) + " " + ' + plural_js("Number(provider.todayPrompts || 0)", "запрос", "запроса", "запросов")
+     + ' + " · " + Number(provider.todaySessions || 0) + " " + ' + plural_js("Number(provider.todaySessions || 0)", "сессия", "сессии", "сессий"), 1),
     ("agents", "Panel.qml", 'days + "d " + (hours % 24) + "h"', 'days + " д " + (hours % 24) + " ч"', 1),
     ("agents", "Panel.qml", 'hours + "h " + (minutes % 60) + "m"', 'hours + " ч " + (minutes % 60) + " мин"', 1),
     ("agents", "Panel.qml", 'Math.max(1, minutes) + "m"', 'Math.max(1, minutes) + " мин"', 1),

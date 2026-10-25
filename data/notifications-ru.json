@@ -70,7 +70,9 @@
   "Click to update the system.": "Нажмите, чтобы обновить систему.",
   "Setup Wi-Fi": "Настроить Wi-Fi",
   "Click to configure the wireless network.": "Нажмите, чтобы настроить беспроводную сеть.",
-  "No recent notifications": "Нет недавних уведомлений"
+  "No recent notifications": "Нет недавних уведомлений",
+  "Shutdown failed": "Выключение не удалось",
+  "Could not complete shutdown. Please try again.": "Не удалось завершить выключение. Попробуйте ещё раз."
  },
  "patterns": [
   [
