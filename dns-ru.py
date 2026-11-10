@@ -27,11 +27,11 @@ PANEL = Path.home() / ".config/omarchy/plugins" / f"{getpass.getuser()}.network"
 # tls — имя для DoT (systemd-resolved, режим opportunistic: сертификат не проверяется).
 PROVIDERS = [
     {"name": "Yandex", "v4": ["77.88.8.8", "77.88.8.1"], "tls": "common.dot.dns.yandex.net",
-     "detect": ["77.88.8.8", "77.88.8.1"], "tip": "DNS: Яндекс (77.88.8.8)"},
+     "detect": ["77.88.8.8", "77.88.8.1"], "tip": "Яндекс (77.88.8.8)"},
     {"name": "DNS4EU", "v4": ["86.54.11.100", "86.54.11.200"], "tls": "unfiltered.joindns4.eu",
-     "detect": ["86.54.11.", "joindns4.eu"], "tip": "DNS: DNS4EU (86.54.11.100)"},
+     "detect": ["86.54.11.", "joindns4.eu"], "tip": "DNS4EU (86.54.11.100)"},
     {"name": "NextDNS", "v4": ["45.90.28.0", "45.90.30.0"], "tls": "dns.nextdns.io",
-     "detect": ["45.90.28.", "45.90.30.", "nextdns.io"], "tip": "DNS: NextDNS (45.90.28.0)"},
+     "detect": ["45.90.28.", "45.90.30.", "nextdns.io"], "tip": "NextDNS (45.90.28.0)"},
 ]
 FALLBACK = ("FallbackDNS=9.9.9.9#dns.quad9.net 149.112.112.112#dns.quad9.net "
             "2620:fe::fe#dns.quad9.net 2620:fe::9#dns.quad9.net")
@@ -90,7 +90,7 @@ def pill(name: str, index: int, tip: str) -> str:
     return (f'          DnsProviderPill {{\n'
             f'            provider: "{name}"\n'
             f'            index: {index}\n'
-            f'            tooltipText: "{tip}"\n'
+            f'            tooltipText: {tip}\n'
             f'            width: dnsRow.cellWidth\n'
             f'            onClicked: root.setDns(provider)\n'
             f'          }}\n')
@@ -127,8 +127,9 @@ def patch_panel() -> None:
     if not m:
         die("не найден Row с пилюлями DNS")
     start, end = m.start(), block_end(t, m.start() + len("        Row "))
-    tips = {"DHCP": "Использовать DNS от DHCP", "Custom": "Задать свои DNS-серверы"}
-    tips.update({p["name"]: p["tip"] for p in PROVIDERS})
+    # Подсказки — из каталога Omarchy (I18n), чтобы следовать выбранному языку.
+    tips = {"DHCP": 'Commons.I18n.t("network.dnsFromDhcp")', "Custom": 'Commons.I18n.t("network.setCustomDns")'}
+    tips.update({p["name"]: f'Commons.I18n.t("network.setDnsTo").arg("{p["tip"]}")' for p in PROVIDERS})
     row = ("        Row {\n          id: dnsRow\n          width: parent.width\n          spacing: Style.space(6)\n\n"
            f"          readonly property int count: {len(names)}\n"
            "          readonly property real cellWidth: (width - spacing * (count - 1)) / count\n\n"

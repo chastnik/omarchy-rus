@@ -11,8 +11,10 @@
 
 ![omarchy-rus: Russian localization installed with one script](docs/screenshot.png)
 
-Russian localization for Omarchy (Arch + Hyprland): locale, UI translation, keyboard layout, speech input, Russian Ministry
-root certificates and other Russia-specific extras. Everything is a set of independent **modules**; when you run `install.sh`
+Russian localization for Omarchy (Arch + Hyprland): locale, keyboard layout, speech input, DNS, Russian Ministry
+root certificates and other Russia-specific extras. Since Omarchy 4.5 the UI itself (menu, bar, panels, Super+K,
+notifications) is translated by Omarchy: the `locale` module turns it on with `omarchy language ru`, and omarchy-rus adds
+what the built-in localization does not cover. Everything is a set of independent **modules**; when you run `install.sh`
 you assemble a "basket" of the ones you want.
 
 ## Installation step by step
@@ -40,6 +42,9 @@ You need: Omarchy, a regular (non-root) user, a terminal and `sudo`.
 6. **Log out and back in** so the interface language takes effect.
 
 **Updating:** download the new release and repeat steps 1–5; the installer is idempotent. Installed archive version: `./install.sh --version`.
+**From 1.x to 2.0:** first update Omarchy to 4.5+ (`omarchy update`; on older versions the installer stops), then run
+`./install.sh` with "Recommended". The `migrate` module removes the old translation, the network, weather and emoji clones
+are recreated in place of the old ones (widget settings are kept), and `locale` turns on the built-in Russian. Log out and back in.
 **Without a release (latest from the repository):** `git clone https://github.com/chastnik/omarchy-rus && cd omarchy-rus && ./install.sh`.
 
 ## Quick start
@@ -53,12 +58,13 @@ You need: Omarchy, a regular (non-root) user, a terminal and `sudo`.
 
 Selection UI: `gum` (ships with Omarchy; Space toggles, Ctrl+A selects all), with a plain text menu as fallback.
 Modules that need `sudo` ask for the password once. A failing module does not stop the rest; a summary is printed at the end.
-The Omarchy shell is restarted once at the end if panels were changed. Log out and back in afterwards.
+The Omarchy shell is restarted once at the end if plugins were changed. Log out and back in afterwards.
 
 ## Modules
 | id | Group | Default | What it does |
 |----|-------|:---:|------------|
-| `locale` | Base | ✓ | `ru_RU.UTF-8` locale, `LANG`, `us,ru` layout (Left Alt + Right Alt) |
+| `migrate` | Base | ✓ | cleanup after omarchy-rus 1.x: menu extension, own Super+K menus, fastfetch config, 1.x plugin clones, the old hook (see below) |
+| `locale` | Base | ✓ | `omarchy language ru` (Omarchy's built-in translation), system `LANG=ru_RU.UTF-8`, `us,ru` layout (Left Alt + Right Alt) |
 | `hypr-layout` | Base | ✓ | `us,ru` in `~/.config/hypr/input.lua` (with backup), Hyprland reload |
 | `spell` | Base | ✓ | `hunspell-ru`, `aspell-ru`, `man-pages-ru` |
 | `timezone` | Simple | ✓ | timezone (`Europe/Moscow`, `RUS_TZ` variable) and `ru.pool.ntp.org` for timesyncd |
@@ -70,15 +76,12 @@ The Omarchy shell is restarted once at the end if panels were changed. Log out a
 | `telegram` | Apps | ✓ | `telegram-desktop` |
 | `browsers` | Apps | ✓ | Chromium/Brave/Chrome: `--lang=ru` and `--accept-lang` in the flags file; Firefox: `firefox-i18n-ru` package |
 | `piper` | Apps | — | neural Russian Piper voice (Irina, offline), the `say-ru` command and a speech-dispatcher module |
-| `weather` | Apps | ✓ | weather widget: `unit=metric`, translation, Russian city geocoding |
+| `weather` | Apps | ✓ | weather widget: `unit=metric`, city search in the UI language (plugin clone) |
 | `dns` | Apps | ✓ | Russia-friendly DNS pills in the network widget (Yandex, DNS4EU, NextDNS) + root helper `omarchy-dns-ru` |
 | `voxtype` | Apps | ✓ | Russian speech recognition (Parakeet), see below |
-| `panels` | UI | ✓ | translates panels and overlays (plugin clones), see below |
-| `menu` | UI | ✓ | translates the Omarchy menu |
-| `keybindings` | UI | ✓ | Russian keybindings menu (Super+K): a copy of the stock one with translated descriptions |
-| `fastfetch` | UI | ✓ | `~/.config/fastfetch/config.jsonc` with Russian headings ("About") |
+| `emojis` | UI | ✓ | emoji search by Russian names (plugin clone, CLDR) |
 | `tts` | UI | ✓ | `speech-dispatcher` + `espeak-ng`, Russian as the default language |
-| `post-update-hook` | UI | — | `post-update.d` hook: after `omarchy update` rebuilds the Russian menu and the Super+K menu, and warns about stale plugin clones and untranslated strings |
+| `post-update-hook` | UI | — | `post-update.d` hook: after `omarchy update` warns if the originals of the clones (network, weather, emojis) changed |
 | `ecp` | Work | — | PC/SC for e-signatures: `pcsclite`, `ccid`, `opensc`, `pcsc-tools`, `pcscd` |
 | `mincifry` | Work | — | Ministry certificates + weekly expiry check |
 
@@ -91,11 +94,10 @@ flowchart TD
     D --> R["Run modules/NN-name.sh in numeric order"]
     A --> R
     U --> R
-    R --> X["Restart the Omarchy shell (once, if panels were touched)"]
+    R --> X["Restart the Omarchy shell (once, if plugins were touched)"]
     X --> Y["Summary: what passed, what failed"]
     C["install-mincifry-ca.sh"] -.->|"mincifry module"| R
-    M["translate-menu.py"] -.->|"menu module"| R
-    T["translate-plugins.py"] -.->|"panels and weather modules"| R
+    T["translate-plugins.py"] -.->|"weather, dns, emojis modules"| R
 ```
 
 ## Project layout
@@ -103,13 +105,10 @@ flowchart TD
 |------|---------|
 | `install.sh` | orchestrator: module selection, sudo, execution, summary |
 | `modules/NN-name.sh` | modules; metadata in the header (`title`, `group`, `default`, `sudo`, `desc`). Drop your own file here to add one |
-| `translate-menu.py` | translates the Omarchy menu |
 | `.github/workflows/` | CI (`ci.yml`) and tag-triggered release build (`release.yml`) |
-| `keybindings-ru.py` | Super+K menu translation and rebinding |
 | `dns-ru.py` | root-helper generator and network widget patch for the `dns` module |
-| `translate-plugins.py` | translates bar plugins; `./translate-plugins.py [name…] [--except name…]`, `--check [--notify]`, `--refresh [name…]` |
-| `check-i18n.py` | translation completeness check (menu, notifications, plugins, patches); `--strict`, `--notify` |
-| `data/` | dictionaries: `emojis-ru.json`, `notifications-ru.json` (notifications), `i18n-ignore.txt` (checker exclusions) |
+| `translate-plugins.py` | network, weather, emojis plugin clones; `./translate-plugins.py [name…] [--except name…]`, `--check [--notify]`, `--refresh [name…]` |
+| `data/emojis-ru.json` | Russian emoji names (CLDR) for search |
 | `CHANGELOG.md` | changelog; the version's section becomes the release notes |
 | `install-mincifry-ca.sh` | Ministry certificates and expiry monitoring |
 | `input.lua.snippet` | snippet appended to `~/.config/hypr/input.lua` |
@@ -117,7 +116,9 @@ flowchart TD
 ## Deliberately not included
 - **Russian pacman mirrors.** Omarchy uses its own "stable" mirror `stable-mirror.omarchy.org`, which pins package versions;
   replacing `mirrorlist` (e.g. via `reflector`) would break that model.
-- **Screensaver and "About" text.** `about.txt`/`screensaver.txt` are ASCII logos; nothing to translate.
+- **Our own UI translation.** Since Omarchy 4.5 it ships in Omarchy itself (`/usr/share/omarchy/default/i18n/ru/`);
+  translation fixes are better sent to [omacom/omarchy](https://github.com/omacom/omarchy) than kept as a parallel dictionary.
+- **Screensaver.** `screensaver.txt` is an ASCII logo; nothing to translate.
 - **Lock screen and the polkit dialog.** Authentication plugins are not cloned: a bug in a clone could lock you out.
 - **CryptoPro CSP, Rutoken/JaCarta drivers, 1C** are proprietary and need registration; the `ecp` module installs only the
   open part (PC/SC) and prints links.
@@ -126,7 +127,7 @@ flowchart TD
 - Fonts (Noto, Liberation) already support Cyrillic; `fcitx5` is installed.
 - Firefox: `omarchy pkg add firefox-i18n-ru`. Chromium and LibreOffice take their language from the system
   (LibreOffice may need a separate language pack).
-- To keep the English UI but type in Russian, remove the `LANG` step.
+- To keep the English UI but type in Russian: `omarchy language en` (or Setup → Language).
 - Files in `/usr/share/omarchy/` are never touched — only `~/.config/`.
 
 ## voxtype (voice input)
@@ -141,75 +142,36 @@ Check the microphone level: on some laptops `Internal Mic Boost` = 100% and `Cap
 The script sets Boost=1, Capture=60% (`amixer -c 0 ...`).
 Diagnostics: `arecord -D default -f S16_LE -r 16000 -c 1 -d 5 t.wav && voxtype transcribe t.wav`.
 
-## Omarchy menu translation (`translate-menu.py`)
-Omarchy has no i18n, so the script reads the stock menu and writes overrides of `label`/`title` to
-`~/.config/omarchy/extensions/omarchy-menu.jsonc`. Entries are written **in full**: Omarchy fills missing fields with empty
-values when merging, so a partial override would wipe `action`/`icon`/`when`. The menu reloads when the file is saved.
+## Omarchy's built-in translation (`locale`, `migrate`)
+Since 4.5 Omarchy has localization: the `menu.json`, `shell.json`, `keybindings.json` and `cli.json` catalogs in
+`/usr/share/omarchy/default/i18n/ru/` cover the menu, the bar and panels, the keybindings menu, notifications and About.
+The `locale` module turns it on (`omarchy language ru`: the `~/.config/omarchy/language` file and the session `LANG` via uwsm).
+The language can also be switched from the menu: Setup → Language.
 
-```mermaid
-flowchart LR
-    D["/usr/share/omarchy/default/omarchy/omarchy-menu.jsonc"] --> S["translate-menu.py"]
-    S -->|"LABELS and TITLES dictionaries"| O["~/.config/omarchy/extensions/omarchy-menu.jsonc"]
-    O --> Q["Omarchy menu: full entries with translated label and title"]
-```
-An existing foreign file is backed up. Run `./translate-menu.py` (idempotent).
-New entries added by later Omarchy versions stay in English until added to `LABELS`/`TITLES`.
+Before 4.5 omarchy-rus translated all of this itself: a menu extension (`translate-menu.py`), its own copies of the Super+K
+menus (`keybindings-ru.py`), bar plugin clones with dictionaries, notification translation, a fastfetch config, and a post-update hook that rebuilt all of it. The
+`migrate` module removes these leftovers (only what omarchy-rus created, by markers and a list of clones; other files are
+left alone): `omarchy plugin remove` puts the original plugin back in the clone's place on the bar, and a backup of the
+clone stays in `~/.config/omarchy/plugins/.<user>.<name>.bak.*`. The 1.x network, weather and emoji clones are removed
+too: the `dns`, `weather` and `emojis` modules recreate them (the widget returns to its place with its settings). The old
+hook is replaced with the new one. On a clean system the module does nothing; on Omarchy without built-in localization it stops.
 
-## Keybindings menu (`keybindings`, `keybindings-ru.py`)
-Binding descriptions live in Hyprland Lua configs under `/usr/share/omarchy/` (not editable), and `omarchy-menu-keybindings` shows
-them as-is. The module builds `~/.local/bin/omarchy-menu-keybindings-ru` — a copy of the stock script with a translation step
-(171 descriptions + rules for "workspace N" and the like), rebinds `SUPER + K` in `~/.config/hypr/bindings.lua` (a block between
-`omarchy-rus: keybindings` markers) and points the "Learn → Keybindings" menu entry to it.
-Translation runs after sorting, so the list order stays stock; the list cache accounts for the dictionary hash.
-If the stock script changes structure, the generator stops with a message and breaks nothing (`./install.sh --only keybindings` after
-`omarchy update`). Untranslated descriptions stay in English; the Tmux and Herdr menus (`Super+Alt+K`, `Super+Ctrl+K`) are translated the same way (copies of the stock scripts; only descriptions are translated, and Herdr actions missing from the dictionary stay in English).
-The dictionary is `TRANSLATIONS` at the top of `keybindings-ru.py`.
+## Plugin clones (`translate-plugins.py`)
+Built-in plugins live in `/usr/share/omarchy/` and must not be edited, so three plugins are cloned
+(`omarchy plugin clone`; clones are `~/.config/omarchy/plugins/<user>.<name>`, listed as "My …"):
 
-## Bar panel translation (`translate-plugins.py`)
-The translated QML plugins are: calendar (clock), network/Wi-Fi, Bluetooth, audio, power, display, Wi-Fi QR, Speed Test and disk test,
-Tailscale, Dropbox, Agents, bar indicators/microphone/tray/updates, notifications, reminders, clipboard, emojis (UI only), image picker; weather is a separate `weather` module.
-For each plugin the script:
-1. clones it (`omarchy plugin clone`; clones live in `~/.config/omarchy/plugins/<user>.<name>`, are listed as "My …",
-   and the originals get disabled);
-2. replaces exact string literals from the `TRANSLATIONS` dictionary. Literals in comparisons
-   (`===`, `indexOf(`, etc.) and internal keys (DHCP/Custom…) are left alone;
-3. applies targeted code edits from `PATCHES` where text is not a literal: the calendar is formatted with the Russian
-   locale explicitly (`Qt.locale("ru_RU")`; the plugin forces English by default), and power profile names
-   ("Экономия/Баланс/Мощность") are built from system names, and the reminder indicator tooltip ("Создать напоминание", "N напоминания") is pluralised by count (the text arrives from `omarchy-reminder` as a ready-made English string);
-4. restarts the shell (`omarchy restart shell`; without it open panels keep the old code; the bar disappears for a few seconds).
+| Clone | Why |
+|-------|-----|
+| `network` | Russia-friendly DNS provider pills (the `dns` module, see below) |
+| `weather` | city search in the UI language: the stock geocoder always asks for `language=en` (a `PATCHES` entry) |
+| `emojis` | Russian names (CLDR, `data/emojis-ru.json`) are appended to the keywords: «сердце», «огонь», «кот» |
 
-```mermaid
-flowchart TD
-    A["For each plugin: clock, network, bluetooth, audio, power, monitor, wifiqr"] --> B{"Clone exists?"}
-    B -->|no| C["omarchy plugin clone omarchy.name"]
-    B -->|yes| D
-    C --> D["Replace string literals (TRANSLATIONS), except comparisons"]
-    D --> E["Targeted code edits (PATCHES)"]
-    E --> F["omarchy restart shell"]
-```
-
-The script is idempotent. If a `PATCHES` fragment is not found (the plugin changed upstream), it writes a message to stderr.
-**Downside of clones:** they do not receive upstream plugin updates. So the script records which upstream files each clone was
-made from, and `./translate-plugins.py --check` shows which originals changed after `omarchy update` (`--notify` sends a
-notification; the `post-update-hook` module does the same). To recreate stale clones and translate again run
-`./translate-plugins.py --refresh` (optionally with plugin names; the DNS patch for the network widget is re-applied).
-Manually: `rm -r ~/.config/omarchy/plugins/$USER.<name>` and run `./translate-plugins.py`
-(to get the original back: `omarchy plugin enable omarchy.<name>`).
-Also translated: Dropbox, Agents (except the Session/Weekly/Monthly limit-window names, which the panel parses) and bar widgets: indicators, microphone, updates, tray.
-Emoji search also works in Russian: Russian names (CLDR, `data/emojis-ru.json`) are appended to the clone's keywords.
-Not translated: lock screen and polkit (see "Deliberately not included").
-Add new plugins to `TRANSLATIONS` the same way.
-
-### Notifications
-Notification texts arrive from Omarchy scripts as ready-made English strings, so they are translated at display time: the
-`notifications` plugin clone gets a `ruText` function with the `data/notifications-ru.json` dictionary (exact strings, patterns
-such as "Battery is down to N%", and "loose" rules for the battery, time and weather status). History is covered too.
-Counts are inflected the Russian way (`plural_js` in `translate-plugins.py`): 1 напоминание, 2 напоминания, 5 напоминаний.
-
-### Completeness check (`check-i18n.py`)
-`./check-i18n.py` compares the dictionaries with what is on the system now: untranslated menu items, notification texts from
-`/usr/share/omarchy/bin`, English literals left in clones, and dead `PATCHES`. Brands and technical values are listed in
-`data/i18n-ignore.txt`. `--strict` returns exit code 1 on findings, `--notify` sends a notification.
+Strings in the clones are not translated: they come from Omarchy's catalogs through `I18n`, as in the originals.
+**The downside of clones:** they do not receive updates of the original plugins. So the script records which original files
+a clone was made from, and `./translate-plugins.py --check` shows which originals changed after `omarchy update`
+(`--notify` sends a notification; the `post-update-hook` module does the same).
+To recreate stale clones: `./translate-plugins.py --refresh` (optionally with plugin names; the DNS patch is re-applied).
+To get the original back: `omarchy plugin remove <user>.<name> --yes`.
 
 ## DNS in the network widget (`dns`, `dns-ru.py`)
 The stock pills are Cloudflare and Google, and `omarchy-dns` accepts only those (+ DHCP/Custom) and lives in `/usr/share/omarchy/`.
@@ -231,7 +193,7 @@ flowchart LR
 - If the stock `omarchy-dns` changes structure, the generator stops with a message instead of emitting a broken helper.
   After `omarchy update` rerun the module: `./install.sh --only dns`.
 - The servers answered over IPv4 (UDP/53) at the time of writing. Reachability depends on your ISP — check on your side.
-  Removal: `sudo rm /usr/local/bin/omarchy-dns-ru` and recreate the network clone (`rm -r ~/.config/omarchy/plugins/$USER.network`, `./translate-plugins.py network`).
+  Removal: `sudo rm /usr/local/bin/omarchy-dns-ru` and remove the network clone (`omarchy plugin remove $USER.network --yes`).
 
 ## Russian Ministry root certificates (`install-mincifry-ca.sh`)
 Needed for Russian government sites and some banks. The script downloads Russian Trusted Root/Sub CA from gu-st.ru, checks

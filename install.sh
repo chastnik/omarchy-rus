@@ -156,6 +156,12 @@ mapfile -t selected < <(printf '%s\n' "${selected[@]}" | sort -un)
 echo; echo "Будет выполнено:"
 for i in "${selected[@]}"; do echo "  • $(label_of "$i")"; done
 [ "$dry" = 1 ] && exit 0
+# С 2.0 интерфейс переводит сам Omarchy (4.5+); на старых версиях модули убрали бы перевод, ничего не дав взамен.
+if [ ! -d /usr/share/omarchy/default/i18n/ru ] || ! command -v omarchy-language >/dev/null; then
+  echo "Нужен Omarchy 4.5 или новее (встроенная локализация): сначала выполните «omarchy update»." >&2
+  echo "Для старых версий Omarchy: omarchy-rus 1.5.0 (https://github.com/chastnik/omarchy-rus/releases/tag/v1.5.0)." >&2
+  exit 1
+fi
 if [ -t 0 ] && [ -t 1 ] && [ -z "$mode" ]; then
   if command -v gum >/dev/null; then gum confirm "Продолжить?" || exit 0
   else read -rp "Продолжить? [Y/n] " a; [[ "${a:-y}" =~ ^[YyДд] ]] || exit 0; fi
@@ -176,7 +182,7 @@ declare -A result
 for i in "${selected[@]}"; do
   echo; echo "▶ ${titles[$i]}"
   if bash "${files[$i]}"; then result[$i]="ok"; else result[$i]="FAIL"; fi
-  case "${ids[$i]}" in panels|weather|dns) need_restart=1 ;; esac
+  case "${ids[$i]}" in migrate|emojis|weather|dns) need_restart=1 ;; esac
 done
 
 if [ "$need_restart" = 1 ]; then

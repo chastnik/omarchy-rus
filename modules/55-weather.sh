@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# title: Виджет погоды: °C и русский интерфейс
+# title: Виджет погоды: °C и поиск городов по-русски
 # group: apps
 # default: on
-# desc: unit=metric в shell.json, перевод панели погоды (клон плагина), геокодинг на русском
+# desc: unit=metric в shell.json; клон плагина погоды, в котором поиск города идёт на языке интерфейса (стоковый — всегда на английском)
 set -euo pipefail
 CFG="$HOME/.config/omarchy/shell.json"
 if [ -f "$CFG" ]; then
