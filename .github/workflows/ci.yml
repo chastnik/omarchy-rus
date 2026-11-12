@@ -42,9 +42,11 @@ jobs:
           import json, re
           d = json.load(open("data/emojis-ru.json", encoding="utf-8"))
           assert isinstance(d, dict) and d, "emojis-ru.json: ожидался непустой словарь"
-          bad = [k for k, v in d.items()
-                 if not k.strip() or not isinstance(v, str) or not re.search("[а-яё]", v.lower())]
-          assert not bad, f"emojis-ru.json: пустые ключи или значения без кириллицы: {bad[:10]}"
+          bad = [k for k, v in d.items() if not k.strip() or not isinstance(v, str) or not v.strip()]
+          assert not bad, f"emojis-ru.json: пустые ключи или названия: {bad[:10]}"
+          # названия русские, но бывают и латинские (CD, DVD) — следим только за долей
+          latin = [k for k, v in d.items() if not re.search("[а-яё]", v.lower())]
+          assert len(latin) <= len(d) // 50, f"emojis-ru.json: слишком много названий без кириллицы: {latin[:10]}"
           print("emojis:", len(d))
           PY
 
