@@ -55,9 +55,13 @@ are recreated in place of the old ones (widget settings are kept), and `locale` 
     ./install.sh --only timezone,telegram     # only the given ids (see --list)
     ./install.sh --skip voxtype,tts           # recommended, except the given ones
     ./install.sh --dry-run ...  # print what would run and exit
+    ./install.sh --plain ...    # no animations: full module output straight to the terminal
 
 Selection UI: `gum` (ships with Omarchy; Space toggles, Ctrl+A selects all), with a plain text menu as fallback.
 Modules that need `sudo` ask for the password once. A failing module does not stop the rest; a summary is printed at the end.
+While installing, each step shows a spinner with a timer and the latest output line, with overall progress below;
+press `v` to expand the last lines of output. The full log goes to `~/.local/state/omarchy-rus/install-*.log`;
+failed steps show their last lines and the command to retry. `RUS_NO_ANIM=1` turns off the banner animation, `NO_COLOR=1` turns off colors.
 The Omarchy shell is restarted once at the end if plugins were changed. Log out and back in afterwards.
 
 ## Modules
@@ -104,6 +108,8 @@ flowchart TD
 | File | Purpose |
 |------|---------|
 | `install.sh` | orchestrator: module selection, sudo, execution, summary |
+| `ui.sh` | installer look: banner, spinner, progress, log |
+| `tests/` | CI checks: module metadata and README tables (`check-modules.py`), installer smoke test (`ui-smoke.sh`) |
 | `modules/NN-name.sh` | modules; metadata in the header (`title`, `group`, `default`, `sudo`, `desc`). Drop your own file here to add one |
 | `.github/workflows/` | CI (`ci.yml`) and tag-triggered release build (`release.yml`) |
 | `dns-ru.py` | root-helper generator and network widget patch for the `dns` module |

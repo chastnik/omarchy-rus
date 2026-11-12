@@ -2,6 +2,7 @@
 # title: Русская озвучка текста (speech-dispatcher + espeak-ng)
 # group: ui
 # default: on
+# sudo: yes
 # desc: экранный чтец/озвучка; язык по умолчанию — русский (RHVoice можно добавить из AUR)
 set -euo pipefail
 omarchy pkg add speech-dispatcher espeak-ng

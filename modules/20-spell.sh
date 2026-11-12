@@ -2,6 +2,7 @@
 # title: Словари орфографии и man-страницы
 # group: base
 # default: on
+# sudo: yes
 # desc: hunspell-ru, aspell-ru, man-pages-ru
 set -euo pipefail
 omarchy pkg add hunspell-ru aspell-ru man-pages-ru

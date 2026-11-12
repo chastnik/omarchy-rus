@@ -39,19 +39,7 @@ jobs:
           fi
 
       - name: Build archive
-        run: |
-          mkdir -p build dist
-          git archive --prefix=omarchy-rus/ HEAD | tar -x -C build
-          rm -rf build/omarchy-rus/.github build/omarchy-rus/.gitignore
-          echo "${{ steps.ver.outputs.ver }}" > build/omarchy-rus/VERSION
-          tar --sort=name --owner=0 --group=0 --numeric-owner -C build -czf dist/omarchy-rus.tar.gz omarchy-rus
-          (cd dist && sha256sum omarchy-rus.tar.gz > omarchy-rus.tar.gz.sha256)
-          # Проверка: архив распаковывается, скрипты исполняемые, версия на месте
-          tmp=$(mktemp -d) && tar -xzf dist/omarchy-rus.tar.gz -C "$tmp"
-          test -x "$tmp/omarchy-rus/install.sh"
-          test "$("$tmp/omarchy-rus/install.sh" --version)" = "${{ steps.ver.outputs.ver }}"
-          "$tmp/omarchy-rus/install.sh" --dry-run -y >/dev/null
-          cat dist/omarchy-rus.tar.gz.sha256
+        run: ./.github/scripts/build-archive.sh "${{ steps.ver.outputs.ver }}" dist
 
       - name: Upload build (manual runs)
         if: github.ref_type != 'tag'

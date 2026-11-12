@@ -2,6 +2,7 @@
 # title: Браузеры: русский интерфейс и проверка орфографии
 # group: apps
 # default: on
+# sudo: yes
 # desc: Chromium/Chrome/Brave: --lang=ru и предпочитаемые языки в флагах запуска; Firefox: языковой пакет; уже запущенные браузеры нужно перезапустить
 set -euo pipefail
 MARK="# omarchy-rus: language"

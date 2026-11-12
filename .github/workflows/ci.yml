@@ -17,35 +17,44 @@ jobs:
 
       - name: Shell syntax
         run: |
-          bash -n install.sh install-mincifry-ca.sh
+          bash -n install.sh ui.sh install-mincifry-ca.sh tests/ui-smoke.sh .github/scripts/build-archive.sh
           for f in modules/*.sh; do bash -n "$f"; done
 
       - name: ShellCheck
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
-          shellcheck -S warning install.sh install-mincifry-ca.sh modules/*.sh
+          shellcheck -S warning install.sh ui.sh install-mincifry-ca.sh modules/*.sh tests/*.sh .github/scripts/*.sh
 
       - name: Python syntax
-        run: python3 -m py_compile translate-plugins.py dns-ru.py
+        run: python3 -m py_compile translate-plugins.py dns-ru.py tests/check-modules.py
+
+      - name: Python lint (pyflakes + bugbear)
+        run: pipx run ruff==0.8.4 check --select F,E9,B ./*.py tests/*.py
+
+      - name: Workflows lint (actionlint)
+        run: |
+          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.7/scripts/download-actionlint.bash) 1.7.7
+          ./actionlint -color
 
       - name: Dictionaries are valid
         run: |
           python3 - <<'PY'
-          import json
-          print("emojis:", len(json.load(open("data/emojis-ru.json"))))
+          import json, re
+          d = json.load(open("data/emojis-ru.json", encoding="utf-8"))
+          assert isinstance(d, dict) and d, "emojis-ru.json: ожидался непустой словарь"
+          bad = [k for k, v in d.items()
+                 if not k.strip() or not isinstance(v, str) or not re.search("[а-яё]", v.lower())]
+          assert not bad, f"emojis-ru.json: пустые ключи или значения без кириллицы: {bad[:10]}"
+          print("emojis:", len(d))
           PY
 
       - name: Changelog has an unreleased or latest section
         run: grep -qE '^## \[' CHANGELOG.md
 
-      - name: Modules have metadata and are executable
-        run: |
-          for f in modules/*.sh; do
-            for k in title group default desc; do
-              grep -q "^# $k:" "$f" || { echo "$f: нет поля $k"; exit 1; }
-            done
-            [ -x "$f" ] || { echo "$f: не исполняемый"; exit 1; }
-          done
+      # метаданные по смыслу, set -euo pipefail, «# sudo: yes» у всех, кто вызывает sudo,
+      # модули не ждут ввода, таблицы модулей в обоих README совпадают с кодом
+      - name: Modules and README tables
+        run: python3 tests/check-modules.py
 
       - name: Installer selection logic (dry run)
         run: |
@@ -54,6 +63,7 @@ jobs:
           ./install.sh --dry-run --all
           ./install.sh --dry-run --only timezone,telegram
           ./install.sh --dry-run --skip voxtype,tts
+          ./install.sh --plain --dry-run -y
           if ./install.sh --only no-such-module; then echo "ожидалась ошибка"; exit 1; fi
 
       - name: README cross-links and diagrams
@@ -64,4 +74,17 @@ jobs:
 
       - name: Pinned certificate fingerprints are well-formed
         run: |
-          grep -E '^\s*\[russian_trusted_(root|sub)_ca\]="([0-9A-F]{2}:){31}[0-9A-F]{2}"' install-mincifry-ca.sh | wc -l | grep -qx 2
+          [ "$(grep -cE '^\s*\[russian_trusted_(root|sub)_ca\]="([0-9A-F]{2}:){31}[0-9A-F]{2}"' install-mincifry-ca.sh)" = 2 ]
+
+  installer:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      # анимированный режим в pty, простой режим, журнал, коды возврата — на фейковых модулях
+      - name: Installer UI smoke test
+        run: tests/ui-smoke.sh
+
+      # та же сборка, что в release.yml: ошибка упаковки видна до тега
+      - name: Release archive builds and runs
+        run: ./.github/scripts/build-archive.sh "ci-${GITHUB_SHA::7}" "$RUNNER_TEMP/dist"

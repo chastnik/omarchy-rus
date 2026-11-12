@@ -1,0 +1,22 @@
+name: Links
+
+# Внешние ссылки в документации. Раз в неделю, а не в каждом PR: чужие сайты отвечают нестабильно.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check links in docs
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --max-retries 3 --accept 200,206,429 README.md README.en.md CHANGELOG.md
+          fail: true

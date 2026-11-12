@@ -2,6 +2,7 @@
 # title: LibreOffice: русский язык + переносы + тезаурус
 # group: safe
 # default: on
+# sudo: yes
 # desc: libreoffice-*-ru, hyphen-ru, mythes-ru (если LibreOffice установлен)
 set -euo pipefail
 if pacman -Q libreoffice-fresh >/dev/null 2>&1; then lo=fresh
